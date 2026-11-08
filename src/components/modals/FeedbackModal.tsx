@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Star, MessageSquareHeart, CheckCircle2, Send, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { BrandLogo } from '../common/BrandLogo';
 import { useAuth } from '../../context/AuthContext';
 import { DataStore } from '../../lib/dataStore';
 import { UserFeedback } from '../../types';
@@ -105,17 +106,32 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div
-        className="w-full max-w-lg rounded-3xl glass-panel bg-slate-950/95 border border-slate-800 shadow-2xl p-6 sm:p-8 relative text-slate-100 animate-modalPop"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl glass-panel bg-slate-950/95 border border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative text-slate-100 animate-modalPop"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={handleResetAndClose}
-          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer border border-slate-800"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Sticky Header with Title and Prominent High-Contrast Close Button */}
+        <div className="sticky top-0 z-30 -mt-6 sm:-mt-8 -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BrandLogo size="md" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">Student Feedback</h2>
+                <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  StudySphere
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">Share suggestions, bug reports, or feature requests</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleResetAndClose}
+            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all shrink-0"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
 
         {isSubmitted ? (
           /* Success View */
@@ -143,19 +159,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
           </div>
         ) : (
           /* Feedback Form View */
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Header */}
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shrink-0">
-                <MessageSquareHeart className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-white tracking-tight">Share Your Feedback</h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Have an idea, spotted a bug, or want to share your experience?
-                </p>
-              </div>
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-5 pt-1">
 
             {/* Star Rating */}
             <div className="space-y-1.5 p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800 text-center">

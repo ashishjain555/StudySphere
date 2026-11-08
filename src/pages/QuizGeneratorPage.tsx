@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   HelpCircle,
   Clock,
@@ -9,6 +9,11 @@ import {
   ArrowRight,
   AlertTriangle,
   BookOpen,
+  Upload,
+  FileText,
+  Trash2,
+  Loader2,
+  Sparkles,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { DataStore, SAMPLE_QUIZ_BANK } from '../lib/dataStore';
@@ -30,6 +35,14 @@ export const QuizGeneratorPage: React.FC<QuizGeneratorPageProps> = ({
   const [selectedTopic, setSelectedTopic] = useState<string>(() => initialPDFTitle || (subjects.length > 0 ? 'Chapter 1 Concepts' : 'General Concepts'));
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
   const [questionCount, setQuestionCount] = useState<number>(5);
+
+  // Dedicated direct PDF upload states
+  const [activePdfText, setActivePdfText] = useState<string>(initialPDFText || '');
+  const [activePdfTitle, setActivePdfTitle] = useState<string>(initialPDFTitle || '');
+  const [attachedPdfFile, setAttachedPdfFile] = useState<File | null>(null);
+  const [isReadingPdf, setIsReadingPdf] = useState<boolean>(false);
+  const [pdfUploadError, setPdfUploadError] = useState<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (initialPDFTitle) {
@@ -56,6 +69,58 @@ export const QuizGeneratorPage: React.FC<QuizGeneratorPageProps> = ({
     return () => clearInterval(timer);
   }, [quizState]);
 
+  const handleDirectPdfUpload = async (file: File) => {
+    if (file.type !== 'application/pdf') {
+      setPdfUploadError('Please select a valid PDF document file.');
+      return;
+    }
+    setPdfUploadError('');
+    setIsReadingPdf(true);
+    setAttachedPdfFile(file);
+    const docName = file.name.replace(/\.pdf$/i, '');
+    setActivePdfTitle(docName);
+    setSelectedTopic(docName);
+
+    try {
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const base64Data = await base64Promise;
+
+      const res = await fetch('/api/ai/analyze-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pdfBase64: base64Data,
+          filename: file.name,
+        }),
+      });
+      const data = await res.json();
+      if (data.extractedText) {
+        setActivePdfText(data.extractedText);
+      } else {
+        setActivePdfText(`STUDY TOPIC: ${docName}`);
+      }
+    } catch (err) {
+      console.warn('Direct PDF extraction fallback:', err);
+      setActivePdfText(`STUDY TOPIC: ${docName}`);
+    } finally {
+      setIsReadingPdf(false);
+    }
+  };
+
+  const handleRemovePdf = () => {
+    setAttachedPdfFile(null);
+    setActivePdfText('');
+    setActivePdfTitle('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleStartQuiz = async () => {
     setIsGenerating(true);
     try {
@@ -69,7 +134,7 @@ export const QuizGeneratorPage: React.FC<QuizGeneratorPageProps> = ({
           topic: selectedTopic,
           difficulty,
           questionCount,
-          pdfText: initialPDFText,
+          pdfText: activePdfText || initialPDFText,
         }),
       });
 
@@ -160,29 +225,95 @@ export const QuizGeneratorPage: React.FC<QuizGeneratorPageProps> = ({
       {/* 1. SETUP STATE */}
       {quizState === 'setup' && (
         <div className="p-8 rounded-3xl glass-panel border border-gray-800 space-y-6">
-          {initialPDFText && (
-            <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 flex items-center justify-between">
+          {/* Direct PDF Upload / Attached PDF Banner */}
+          {activePdfText || activePdfTitle ? (
+            <div className="p-4 rounded-2xl bg-blue-950/40 border border-blue-500/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fadeIn">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-500/20 text-blue-600 dark:text-blue-400">
-                  <BookOpen className="w-5 h-5" />
+                <div className="p-3 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 shrink-0">
+                  <FileText className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
-                      Attached Document
+                    <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wide">
+                      Attached PDF Document
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      Active Source
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
+                      Active Quiz Source
                     </span>
                   </div>
                   <p className="text-sm font-bold text-white mt-0.5">
-                    {initialPDFTitle || 'Uploaded Study PDF'}
+                    {activePdfTitle || attachedPdfFile?.name || 'Uploaded Study PDF'}
                   </p>
-                  <p className="text-xs text-gray-400">
-                    StudySphere will synthesize questions strictly extracted from this document's content.
+                  <p className="text-xs text-slate-400">
+                    {isReadingPdf ? 'Extracting concepts and syllabus parameters from PDF...' : 'AI will synthesize targeted multiple-choice questions strictly from this PDF document.'}
                   </p>
                 </div>
               </div>
+
+              <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={handleRemovePdf}
+                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-rose-400 hover:text-rose-300 text-xs font-semibold border border-slate-800 flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Remove PDF</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* Upload PDF Dropzone Option */
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const file = e.dataTransfer.files?.[0];
+                if (file) handleDirectPdfUpload(file);
+              }}
+              className="p-5 rounded-2xl border-2 border-dashed border-slate-800 hover:border-blue-500/60 bg-slate-900/30 hover:bg-slate-900/50 transition-all cursor-pointer flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 text-blue-400 border border-blue-500/25 flex items-center justify-center transition-colors shrink-0">
+                  {isReadingPdf ? <Loader2 className="w-6 h-6 animate-spin text-blue-400" /> : <Upload className="w-6 h-6" />}
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-white group-hover:text-blue-300 transition-colors flex items-center gap-1.5 justify-center sm:justify-start">
+                    Generate Quiz directly from a PDF Document
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-300 border border-blue-500/30 font-semibold">
+                      DIRECT UPLOAD
+                    </span>
+                  </h4>
+                  <p className="text-xs text-slate-400">
+                    Upload any chapter notes, syllabus PDF, or textbook — AI will formulate questions directly from it.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center gap-2 border border-blue-400/30 shadow-sm shrink-0 pointer-events-none"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Upload PDF</span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleDirectPdfUpload(file);
+                }}
+              />
+            </div>
+          )}
+
+          {pdfUploadError && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>{pdfUploadError}</span>
             </div>
           )}
 

@@ -23,6 +23,7 @@ import {
   Sparkles,
   Info,
   MessageSquareHeart,
+  Pencil,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DataStore } from '../lib/dataStore';
@@ -58,6 +59,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Security: Password Change State
   const [showPasswordSection, setShowPasswordSection] = useState(false);
@@ -78,6 +80,19 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const quizzesCount = DataStore.getQuizAttempts().length;
   const tasksCount = DataStore.getTasks().length;
   const weakTopicsCount = DataStore.getWeakTopics().length;
+
+  const handleCancelEdit = () => {
+    setFullName(user?.fullName || '');
+    setAvatarUrl(user?.avatarUrl || AVATAR_PRESETS[0]);
+    setInstitution(user?.institution || '');
+    setMajor(user?.major || '');
+    setSemester(user?.semester || '');
+    setTargetGoal(user?.targetGoal || '');
+    setRole(user?.role || 'student');
+    setShowAvatarPicker(false);
+    setErrorMessage('');
+    setIsEditing(false);
+  };
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +118,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
       if (res.success) {
         setSaveSuccess(true);
+        setIsEditing(false);
+        setShowAvatarPicker(false);
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
         setErrorMessage(res.error || 'Failed to update profile.');
@@ -190,18 +207,27 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 alt={fullName || 'User'}
                 className="w-28 h-28 rounded-3xl object-cover border-2 border-blue-500/40 shadow-xl mx-auto"
               />
-              <button
-                type="button"
-                onClick={() => setShowAvatarPicker(!showAvatarPicker)}
-                className="absolute -bottom-2 -right-2 p-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg border border-blue-400/40 transition-transform active:scale-95 cursor-pointer"
-                title="Change Avatar"
-              >
-                <Camera className="w-4 h-4" />
-              </button>
+              {isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAvatarPicker(!showAvatarPicker)}
+                  className="absolute -bottom-2 -right-2 p-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg border border-blue-400/40 transition-transform active:scale-95 cursor-pointer"
+                  title="Change Avatar"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+              ) : (
+                <div
+                  className="absolute -bottom-2 -right-2 p-2 rounded-2xl bg-slate-900/90 border border-slate-700 text-slate-400 shadow-md flex items-center justify-center"
+                  title="Profile locked. Click 'Edit Profile' to change avatar."
+                >
+                  <Lock className="w-3.5 h-3.5 text-slate-400" />
+                </div>
+              )}
             </div>
 
             {/* Avatar Preset Selector Tray */}
-            {showAvatarPicker && (
+            {isEditing && showAvatarPicker && (
               <div className="p-3 bg-gray-900/90 rounded-2xl border border-gray-800 space-y-2 animate-fadeIn">
                 <span className="text-[11px] font-semibold text-gray-400 block text-left">Choose avatar preset:</span>
                 <div className="grid grid-cols-6 gap-2">
@@ -288,130 +314,246 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
         {/* Right Column: Edit Profile Details & Security Settings */}
         <div className="lg:col-span-8 space-y-6">
-          <form onSubmit={handleSaveProfile} className="p-6 sm:p-8 rounded-3xl glass-panel bg-gray-950/80 border border-gray-800 space-y-6 shadow-xl">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-800/80">
-              <div>
-                <h2 className="text-base font-bold text-white">General Information</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Update your personal and college details</p>
-              </div>
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs border border-blue-400/30 flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-600/20 disabled:opacity-50"
-              >
-                {isSaving ? (
-                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <Save className="w-3.5 h-3.5" />
-                )}
-                Save Profile
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Full Name */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                  Full Name *
-                </label>
-                <div className="relative">
-                  <User className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                    placeholder="e.g. Ashish Jain"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
-                  />
+          {!isEditing ? (
+            /* LOCKED READ-ONLY VIEW MODE */
+            <div className="p-6 sm:p-8 rounded-3xl glass-panel bg-gray-950/80 border border-gray-800 space-y-6 shadow-xl animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-800/80">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-base font-bold text-white">General Information</h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> Locked & Protected
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    Profile credentials are locked to preserve data integrity. Click Edit Profile to modify.
+                  </p>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs border border-blue-400/30 flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-600/25 active:scale-95 shrink-0 self-start sm:self-auto"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Edit Profile
+                </button>
               </div>
 
-              {/* Email Address (Read-only) */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                  Registered Email (Verified)
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900/50 border border-gray-800/60 text-gray-400 text-sm cursor-not-allowed"
-                  />
+              {/* Read-Only Grid Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Full Name */}
+                <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80 space-y-1.5 hover:border-gray-700/80 transition-colors">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <User className="w-3.5 h-3.5 text-blue-400" /> Full Name
+                    </span>
+                    <span className="text-[10px] font-mono text-gray-500">LOCKED</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white pl-5">{fullName || 'Student'}</p>
                 </div>
-              </div>
 
-              {/* Institution / College */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                  College / University
-                </label>
-                <div className="relative">
-                  <School className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={institution}
-                    onChange={(e) => setInstitution(e.target.value)}
-                    placeholder="e.g. Mumbai University / DTU"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
-                  />
+                {/* Email Address */}
+                <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80 space-y-1.5 hover:border-gray-700/80 transition-colors">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Mail className="w-3.5 h-3.5 text-emerald-400" /> Registered Email
+                    </span>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold">VERIFIED</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white pl-5 truncate">{user?.email || 'N/A'}</p>
                 </div>
-              </div>
 
-              {/* Major / Department */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                  Major / Branch
-                </label>
-                <div className="relative">
-                  <BookOpen className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={major}
-                    onChange={(e) => setMajor(e.target.value)}
-                    placeholder="e.g. Computer Science & Engineering"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
-                  />
+                {/* College / Institution */}
+                <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80 space-y-1.5 hover:border-gray-700/80 transition-colors">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <School className="w-3.5 h-3.5 text-indigo-400" /> College / University
+                    </span>
+                    <span className="text-[10px] font-mono text-gray-500">INSTITUTION</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white pl-5">{institution || 'Not specified'}</p>
                 </div>
-              </div>
 
-              {/* Current Semester / Year */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                  Semester / Academic Year
-                </label>
-                <div className="relative">
-                  <GraduationCap className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={semester}
-                    onChange={(e) => setSemester(e.target.value)}
-                    placeholder="e.g. Semester 6 / 3rd Year"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
-                  />
+                {/* Major / Department */}
+                <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80 space-y-1.5 hover:border-gray-700/80 transition-colors">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <BookOpen className="w-3.5 h-3.5 text-purple-400" /> Major / Department
+                    </span>
+                    <span className="text-[10px] font-mono text-gray-500">BRANCH</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white pl-5">{major || 'Not specified'}</p>
                 </div>
-              </div>
 
-              {/* Academic Target Goal */}
-              <div>
-                <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                  Primary Study Goal
-                </label>
-                <div className="relative">
-                  <Award className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="text"
-                    value={targetGoal}
-                    onChange={(e) => setTargetGoal(e.target.value)}
-                    placeholder="e.g. 9.0+ CGPA / GATE / Placements"
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
-                  />
+                {/* Semester / Academic Year */}
+                <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80 space-y-1.5 hover:border-gray-700/80 transition-colors">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <GraduationCap className="w-3.5 h-3.5 text-amber-400" /> Semester / Year
+                    </span>
+                    <span className="text-[10px] font-mono text-gray-500">TERM</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white pl-5">{semester || 'Not specified'}</p>
+                </div>
+
+                {/* Target Study Goal */}
+                <div className="p-4 rounded-2xl bg-gray-900/60 border border-gray-800/80 space-y-1.5 hover:border-gray-700/80 transition-colors">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Award className="w-3.5 h-3.5 text-rose-400" /> Target Study Goal
+                    </span>
+                    <span className="text-[10px] font-mono text-gray-500">OBJECTIVE</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white pl-5">{targetGoal || 'Not specified'}</p>
                 </div>
               </div>
             </div>
-          </form>
+          ) : (
+            /* EDITABLE FORM MODE */
+            <form onSubmit={handleSaveProfile} className="p-6 sm:p-8 rounded-3xl glass-panel bg-gray-950/80 border border-blue-500/40 space-y-6 shadow-xl animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-800/80">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-base font-bold text-white">Edit Academic Profile</h2>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-500/15 text-blue-400 border border-blue-500/30 animate-pulse">
+                      Editing Mode Active
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-0.5">Modify your details below and click Save Changes when done</p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="px-3.5 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 font-semibold text-xs border border-gray-800 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs border border-blue-400/30 flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-600/25 disabled:opacity-50"
+                  >
+                    {isSaving ? (
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <Save className="w-3.5 h-3.5" />
+                    )}
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {/* Full Name */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                    Full Name *
+                  </label>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      required
+                      placeholder="e.g. Ashish Jain"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Email Address (Read-only) */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                      Registered Email
+                    </label>
+                    <span className="text-[10px] text-gray-500 font-mono">Immutable</span>
+                  </div>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="email"
+                      value={user?.email || ''}
+                      disabled
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900/50 border border-gray-800/60 text-gray-400 text-sm cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                {/* Institution / College */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                    College / University
+                  </label>
+                  <div className="relative">
+                    <School className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={institution}
+                      onChange={(e) => setInstitution(e.target.value)}
+                      placeholder="e.g. Mumbai University / DTU"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Major / Department */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                    Major / Branch
+                  </label>
+                  <div className="relative">
+                    <BookOpen className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={major}
+                      onChange={(e) => setMajor(e.target.value)}
+                      placeholder="e.g. Computer Science & Engineering"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Current Semester / Year */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                    Semester / Academic Year
+                  </label>
+                  <div className="relative">
+                    <GraduationCap className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={semester}
+                      onChange={(e) => setSemester(e.target.value)}
+                      placeholder="e.g. Semester 6 / 3rd Year"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Academic Target Goal */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                    Primary Study Goal
+                  </label>
+                  <div className="relative">
+                    <Award className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type="text"
+                      value={targetGoal}
+                      onChange={(e) => setTargetGoal(e.target.value)}
+                      placeholder="e.g. 9.0+ CGPA / GATE / Placements"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 focus:border-blue-500 text-gray-100 text-sm focus:outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            </form>
+          )}
 
           {/* Account Security & Password Management */}
           <div className="p-6 sm:p-8 rounded-3xl glass-panel bg-gray-950/80 border border-gray-800 space-y-6 shadow-xl">

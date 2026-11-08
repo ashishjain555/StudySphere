@@ -37,29 +37,28 @@ export const AboutModal: React.FC<AboutModalProps> = ({
         className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl glass-panel bg-slate-950/95 border border-slate-800 shadow-2xl p-6 sm:p-8 space-y-6 relative text-slate-100 animate-modalPop"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer border border-slate-800"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Brand & Header */}
-        <div className="flex items-center gap-4">
-          <BrandLogo size="lg" />
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold text-white tracking-tight">StudySphere AI</h2>
-              <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                v1.0 Live
-              </span>
+        {/* Sticky Header with Title and Prominent High-Contrast Close Button */}
+        <div className="sticky top-0 z-30 -mt-6 sm:-mt-8 -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 bg-slate-950/95 backdrop-blur-md border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <BrandLogo size="md" />
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">About StudySphere</h2>
+                <span className="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  v1.0 Live
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400">Intelligent Academic Learning & Study Platform</p>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Next-Generation Intelligent Student Learning & Curriculum Intelligence Platform
-            </p>
           </div>
+
+          <button
+            onClick={onClose}
+            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all shrink-0"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
         </div>
 
         {/* Mission Statement */}
