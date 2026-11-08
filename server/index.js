@@ -1038,6 +1038,200 @@ Highlight common conceptual misconceptions, high-yield exam rules, and targeted 
   }
 });
 
+// --- STUDENT FEEDBACK STORAGE & EMAIL NOTIFICATION DISPATCHER ---
+const FEEDBACK_STORAGE_PATH = path.resolve(__dirname, '../data/feedbacks.json');
+
+function ensureFeedbackStorage() {
+  try {
+    const dir = path.dirname(FEEDBACK_STORAGE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    if (!fs.existsSync(FEEDBACK_STORAGE_PATH)) {
+      fs.writeFileSync(FEEDBACK_STORAGE_PATH, '[]', 'utf-8');
+    }
+  } catch (err) {
+    console.error('Failed to initialize feedback storage:', err.message);
+  }
+}
+ensureFeedbackStorage();
+
+function readStoredFeedbacks() {
+  try {
+    ensureFeedbackStorage();
+    if (fs.existsSync(FEEDBACK_STORAGE_PATH)) {
+      return JSON.parse(fs.readFileSync(FEEDBACK_STORAGE_PATH, 'utf-8'));
+    }
+  } catch (err) {
+    console.error('Error reading stored feedbacks:', err.message);
+  }
+  return [];
+}
+
+function persistFeedbackRecord(record) {
+  try {
+    ensureFeedbackStorage();
+    const list = readStoredFeedbacks();
+    list.unshift(record);
+    fs.writeFileSync(FEEDBACK_STORAGE_PATH, JSON.stringify(list, null, 2), 'utf-8');
+    return true;
+  } catch (err) {
+    console.error('Error persisting feedback to disk:', err.message);
+    return false;
+  }
+}
+
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const { rating = 5, category = 'general', message = '', email = '' } = req.body || {};
+
+    if (!message || message.trim().length < 3) {
+      return res.status(400).json({ error: 'Feedback message is required (min 3 characters).' });
+    }
+
+    const feedbackRecord = {
+      id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      rating: Number(rating) || 5,
+      category: String(category).trim(),
+      message: String(message).trim(),
+      email: String(email).trim() || 'anonymous@student.com',
+      receivedAt: new Date().toISOString(),
+      userAgent: req.headers['user-agent'] || '',
+      ip: req.ip || req.connection?.remoteAddress || '',
+    };
+
+    // 1. Always save to local server file system so no feedback is ever lost
+    persistFeedbackRecord(feedbackRecord);
+    console.log(`📩 [StudySphere Feedback] [${feedbackRecord.rating}★] [${feedbackRecord.category}] from: ${feedbackRecord.email}`);
+
+    // 2. Dispatch email to StudySphere owner/admin if email provider configured
+    const web3formsKey = process.env.WEB3FORMS_ACCESS_KEY || process.env.FEEDBACK_ACCESS_KEY;
+    const resendKey = process.env.RESEND_API_KEY;
+    const formspreeUrl = process.env.FORMSPREE_ENDPOINT;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.FEEDBACK_RECEIVER_EMAIL;
+
+    let emailDelivered = false;
+    let providerUsed = 'none';
+
+    // A. Web3Forms (Zero-backend setup, forwards directly to owner's inbox)
+    if (web3formsKey) {
+      try {
+        const w3Res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_key: web3formsKey,
+            subject: `[StudySphere Feedback] ${feedbackRecord.rating}★ Review (${feedbackRecord.category.toUpperCase()})`,
+            from_name: `StudySphere Student (${feedbackRecord.email})`,
+            email: feedbackRecord.email,
+            message: `🌟 New Student Feedback on StudySphere!\n\n` +
+              `• Rating: ${feedbackRecord.rating} / 5 Stars\n` +
+              `• Category: ${feedbackRecord.category}\n` +
+              `• Student Email: ${feedbackRecord.email}\n` +
+              `• Submitted: ${feedbackRecord.receivedAt}\n\n` +
+              `Student Message:\n"${feedbackRecord.message}"\n\n` +
+              `— Sent automatically via StudySphere Feedback Engine`,
+          }),
+        });
+        const w3Data = await w3Res.json();
+        if (w3Data && w3Data.success) {
+          emailDelivered = true;
+          providerUsed = 'web3forms';
+          console.log('✅ Feedback successfully dispatched to admin inbox via Web3Forms');
+        }
+      } catch (err) {
+        console.warn('⚠️ Web3Forms delivery warning:', err.message);
+      }
+    }
+
+    // B. Resend API
+    if (!emailDelivered && resendKey && adminEmail) {
+      try {
+        const resendRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${resendKey}`,
+          },
+          body: JSON.stringify({
+            from: 'StudySphere Feedback <onboarding@resend.dev>',
+            to: [adminEmail],
+            subject: `[StudySphere Feedback] ${feedbackRecord.rating}★ (${feedbackRecord.category.toUpperCase()})`,
+            html: `
+              <div style="font-family: Arial, sans-serif; background: #0f172a; color: #f8fafc; padding: 24px; border-radius: 12px;">
+                <h2 style="color: #818cf8; margin-top: 0;">New Student Feedback Received</h2>
+                <p><strong>Rating:</strong> ${'★'.repeat(feedbackRecord.rating)}${'☆'.repeat(5 - feedbackRecord.rating)} (${feedbackRecord.rating}/5)</p>
+                <p><strong>Category:</strong> ${feedbackRecord.category}</p>
+                <p><strong>Student Email:</strong> <a href="mailto:${feedbackRecord.email}" style="color: #38bdf8;">${feedbackRecord.email}</a></p>
+                <p><strong>Received At:</strong> ${feedbackRecord.receivedAt}</p>
+                <div style="background: #1e293b; padding: 16px; border-radius: 8px; border-left: 4px solid #818cf8; margin-top: 16px;">
+                  <p style="margin: 0; font-size: 15px; color: #e2e8f0; white-space: pre-wrap;">${feedbackRecord.message}</p>
+                </div>
+              </div>
+            `,
+          }),
+        });
+        if (resendRes.ok) {
+          emailDelivered = true;
+          providerUsed = 'resend';
+          console.log('✅ Feedback successfully dispatched to admin inbox via Resend API');
+        }
+      } catch (err) {
+        console.warn('⚠️ Resend delivery warning:', err.message);
+      }
+    }
+
+    // C. Formspree Endpoint
+    if (!emailDelivered && formspreeUrl) {
+      try {
+        const fpRes = await fetch(formspreeUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            rating: `${feedbackRecord.rating} / 5 Stars`,
+            category: feedbackRecord.category,
+            studentEmail: feedbackRecord.email,
+            message: feedbackRecord.message,
+            submittedAt: feedbackRecord.receivedAt,
+          }),
+        });
+        if (fpRes.ok) {
+          emailDelivered = true;
+          providerUsed = 'formspree';
+          console.log('✅ Feedback successfully dispatched to admin inbox via Formspree');
+        }
+      } catch (err) {
+        console.warn('⚠️ Formspree delivery warning:', err.message);
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: 'Feedback securely received and saved.',
+      feedbackId: feedbackRecord.id,
+      emailDelivered,
+      providerUsed,
+    });
+  } catch (error) {
+    console.error('Error in /api/feedback:', error);
+    return res.status(500).json({ error: 'Failed to record feedback.' });
+  }
+});
+
+// Endpoint to retrieve all received feedbacks (for admin inspection)
+app.get('/api/feedback', (req, res) => {
+  try {
+    const list = readStoredFeedbacks();
+    return res.json({
+      success: true,
+      totalCount: list.length,
+      feedbacks: list,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to retrieve feedback list.' });
+  }
+});
+
 // Helper Fallback Chat Generator (Natural and Question-Aware)
 function generateFallbackChatResponse(query, level) {
   const lower = (query || '').toLowerCase().trim();

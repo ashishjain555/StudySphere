@@ -58,7 +58,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     };
   }, [isOpen, onClose]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || message.trim().length < 5) {
       setError('Please provide at least a few words so we understand your thoughts (min 5 characters).');
@@ -68,16 +68,35 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     setError('');
     setIsSubmitting(true);
 
+    const studentEmail = email.trim() || user?.email || 'anonymous@student.com';
+
     const feedbackItem: UserFeedback = {
       id: `fb_${Date.now()}`,
       rating,
       category,
       message: message.trim(),
-      email: email.trim() || user?.email || 'anonymous@student',
+      email: studentEmail,
       createdAt: new Date().toISOString(),
     };
 
+    // 1. Save locally for instant UI response
     DataStore.saveFeedback(feedbackItem);
+
+    // 2. Dispatch to backend API (which persists to server disk and forwards to admin's email)
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rating,
+          category,
+          message: message.trim(),
+          email: studentEmail,
+        }),
+      });
+    } catch (err) {
+      console.warn('Backend feedback dispatch notification:', err);
+    }
 
     // Trigger celebration confetti
     try {
@@ -88,10 +107,8 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       });
     } catch {}
 
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 400);
+    setIsSubmitting(false);
+    setIsSubmitted(true);
   };
 
   const handleResetAndClose = () => {
