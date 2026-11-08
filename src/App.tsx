@@ -25,6 +25,7 @@ import { BrandLogo } from './components/common/BrandLogo';
 import { InteractiveBackground3D } from './components/3d/InteractiveBackground3D';
 import { BookOpeningTransition } from './components/3d/BookOpeningTransition';
 import { CustomCursorFX } from './components/common/CustomCursorFX';
+import { FloatingAIAssistant3D } from './components/3d/FloatingAIAssistant3D';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -228,6 +229,9 @@ const AppContent: React.FC = () => {
           {currentPath === '/app/profile' && <ProfilePage onNavigate={navigate} />}
         </main>
       </div>
+
+      {/* Interactive 3D Holographic AI Assistant Companion */}
+      <FloatingAIAssistant3D onNavigate={navigate} />
 
       {/* Global Intelligent Search Modal */}
       <GlobalSearchModal

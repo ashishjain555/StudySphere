@@ -537,49 +537,49 @@ export const DataStore = {
 
   getMaterials(): StudyMaterial[] {
     const uid = getCurrentUserId();
-    const globalList = getStored<StudyMaterial[]>(STORAGE_KEYS.MATERIALS, []);
     const userList = getStored<StudyMaterial[]>(userKey(STORAGE_KEYS.MATERIALS, uid), []);
     const deletedIds = new Set(getStored<string[]>('studysphere_deleted_materials', []));
 
-    // Merge global and user-specific without duplicates by id, filtering out any deleted IDs and legacy demo materials
-    const map = new Map<string, StudyMaterial>();
-    globalList.forEach((m) => {
-      if (!deletedIds.has(m.id) && m.id !== 'mat_1' && m.id !== 'mat_2') map.set(m.id, m);
-    });
-    userList.forEach((m) => {
-      if (!deletedIds.has(m.id) && m.id !== 'mat_1' && m.id !== 'mat_2' && !map.has(m.id)) map.set(m.id, m);
-    });
+    // Clear legacy global key so no old dummy materials leak across users
+    try {
+      localStorage.removeItem(STORAGE_KEYS.MATERIALS);
+    } catch {}
 
-    const list = Array.from(map.values());
-    let hasBloated = false;
-    const sanitized = list.map((m) => {
-      // If legacy material has large Base64 in fileUrl, migrate to IndexedDB and sanitize
-      if (m.fileUrl && m.fileUrl.startsWith('data:') && m.fileUrl.length > 500) {
-        hasBloated = true;
-        PDFStorage.savePDF({
-          id: m.id,
-          name: m.title,
-          dataUrl: m.fileUrl,
-          mimeType: 'application/pdf',
-          size: m.fileUrl.length,
-          uploadedAt: m.createdAt,
-        }).catch(() => {});
-        return {
-          ...m,
-          fileUrl: `#indexeddb_${m.id}`,
-        };
-      }
-      return m;
-    });
+    // Strictly user-private: only return materials uploaded by this user,
+    // excluding any demo or dummy materials (mat_1, mat_2, demo_*)
+    const sanitized = userList
+      .filter((m) => {
+        if (deletedIds.has(m.id)) return false;
+        if (m.id === 'mat_1' || m.id === 'mat_2' || m.id.startsWith('demo_')) return false;
+        // If uploadedBy is tagged, verify it belongs to this user or current session
+        if (m.uploadedBy && m.uploadedBy !== uid && m.uploadedBy !== 'self') return false;
+        return true;
+      })
+      .map((m) => {
+        // If legacy material has large Base64 in fileUrl, migrate to IndexedDB and sanitize
+        if (m.fileUrl && m.fileUrl.startsWith('data:') && m.fileUrl.length > 500) {
+          PDFStorage.savePDF({
+            id: m.id,
+            name: m.title,
+            dataUrl: m.fileUrl,
+            mimeType: 'application/pdf',
+            size: m.fileUrl.length,
+            uploadedAt: m.createdAt,
+          }).catch(() => {});
+          return {
+            ...m,
+            fileUrl: `#indexeddb_${m.id}`,
+          };
+        }
+        return m;
+      });
 
-    setStored(STORAGE_KEYS.MATERIALS, sanitized);
     setStored(userKey(STORAGE_KEYS.MATERIALS, uid), sanitized);
     return sanitized;
   },
 
   saveMaterials(materials: StudyMaterial[]): void {
     const uid = getCurrentUserId();
-    setStored(STORAGE_KEYS.MATERIALS, materials);
     setStored(userKey(STORAGE_KEYS.MATERIALS, uid), materials);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('studysphere:materials_update'));
@@ -598,14 +598,14 @@ export const DataStore = {
     }
 
     const list = this.getMaterials();
-    // Guarantee no bloated base64 string in localStorage metadata!
+    // Guarantee no bloated base64 string in localStorage metadata & tag with user ID!
     const sanitizedMat: StudyMaterial = {
       ...mat,
+      uploadedBy: uid, // Strictly private to this user
       fileUrl: mat.fileUrl && mat.fileUrl.startsWith('data:') ? `#indexeddb_${mat.id}` : mat.fileUrl,
     };
     const filtered = list.filter((m) => m.id !== sanitizedMat.id);
     const updated = [sanitizedMat, ...filtered];
-    setStored(STORAGE_KEYS.MATERIALS, updated);
     setStored(userKey(STORAGE_KEYS.MATERIALS, uid), updated);
 
     // Cloud sync to Supabase (study_materials table)
@@ -628,10 +628,9 @@ export const DataStore = {
       setStored('studysphere_deleted_materials', deletedList);
     }
 
-    // 2. Remove from global materials list and user list
-    const currentList = getStored<StudyMaterial[]>(STORAGE_KEYS.MATERIALS, []);
+    // 2. Remove from user list
+    const currentList = this.getMaterials();
     const updatedList = currentList.filter((m) => m.id !== id);
-    setStored(STORAGE_KEYS.MATERIALS, updatedList);
     setStored(userKey(STORAGE_KEYS.MATERIALS, uid), updatedList);
 
     // 3. Remove binary file from IndexedDB
@@ -793,8 +792,10 @@ export const DataStore = {
         });
 
         let updated = false;
-        remoteMats.forEach((rm) => {
-          if (!deletedList.has(rm.id) && rm.id !== 'mat_1' && rm.id !== 'mat_2' && !map.has(rm.id)) {
+        remoteMats.forEach((rm: any) => {
+          // Strictly only merge materials owned by this specific user
+          const isOwner = rm.user_id === uid || rm.uploadedBy === uid;
+          if (isOwner && !deletedList.has(rm.id) && rm.id !== 'mat_1' && rm.id !== 'mat_2' && !map.has(rm.id)) {
             map.set(rm.id, rm);
             updated = true;
           }
@@ -802,7 +803,6 @@ export const DataStore = {
 
         if (updated) {
           const merged = Array.from(map.values());
-          setStored(STORAGE_KEYS.MATERIALS, merged);
           setStored(userKey(STORAGE_KEYS.MATERIALS, uid), merged);
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('studysphere:materials_update'));

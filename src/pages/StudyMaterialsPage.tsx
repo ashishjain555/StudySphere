@@ -570,7 +570,28 @@ export const StudyMaterialsPage: React.FC<StudyMaterialsPageProps> = ({ onNaviga
         })}
       </div>
 
-      {filtered.length === 0 && (
+      {materials.length === 0 ? (
+        <div className="p-12 sm:p-16 text-center border border-dashed border-slate-800/80 rounded-3xl space-y-4 bg-slate-900/40 backdrop-blur-sm animate-fadeIn">
+          <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/25 text-blue-400 flex items-center justify-center mx-auto shadow-inner">
+            <FolderOpen className="w-8 h-8" />
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="text-xl font-bold text-white tracking-tight">Your Private Study Vault is Empty</h3>
+            <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
+              All documents and PDFs you upload are 100% private to your account. No other user can view or access your personal materials.
+            </p>
+          </div>
+          <div className="pt-2">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs inline-flex items-center gap-2 border border-blue-400/30 transition-all cursor-pointer shadow-md"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Upload Your First PDF</span>
+            </button>
+          </div>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="p-12 text-center border border-dashed border-gray-800 rounded-3xl space-y-3">
           <FolderOpen className="w-10 h-10 text-gray-600 mx-auto" />
           <p className="text-base font-bold text-gray-300">No study materials match your search</p>
@@ -578,7 +599,7 @@ export const StudyMaterialsPage: React.FC<StudyMaterialsPageProps> = ({ onNaviga
             Try adjusting your search query, selecting "ALL" categories, or click "Upload PDF / Material" to add your study documents.
           </p>
         </div>
-      )}
+      ) : null}
 
       {/* Upload Material Modal */}
       {isModalOpen && (
