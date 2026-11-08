@@ -27,6 +27,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { DataStore } from '../lib/dataStore';
 import { StudyPlanTask, WeakTopic, Subject, StudyMaterial } from '../types';
+import { TiltCard3D } from '../components/3d/TiltCard3D';
 
 interface DashboardPageProps {
   onNavigate: (path: string) => void;
@@ -80,112 +81,122 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Top Banner Greeting */}
-      <div className="p-8 rounded-3xl glass-panel border border-slate-800/80 bg-slate-900/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="space-y-2 relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 text-slate-300 text-xs font-medium border border-slate-700/60">
-            <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
-            Study Workspace Active
+      {/* Top Banner Greeting with 3D Tilt */}
+      <TiltCard3D maxTilt={4} className="w-full">
+        <div className="p-8 rounded-3xl glass-panel border border-slate-800/80 bg-slate-900/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+          <div className="space-y-2 relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 text-slate-300 text-xs font-medium border border-slate-700/60">
+              <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
+              Study Workspace Active
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+              {getGreeting()}, <span className="text-slate-100 font-semibold">{user?.fullName || 'Scholar'}</span> 👋
+            </h1>
+            <p className="text-sm text-slate-400">
+              Ready to continue learning? Track your study plans, curriculum subjects, and diagnostics.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            {getGreeting()}, <span className="text-slate-100 font-semibold">{user?.fullName || 'Scholar'}</span> 👋
-          </h1>
-          <p className="text-sm text-slate-400">
-            Ready to continue learning? Track your study plans, curriculum subjects, and diagnostics.
-          </p>
+
+          <div className="flex items-center gap-4 relative z-10 shrink-0">
+            {/* Quick Assistant Launcher Tile */}
+            <div
+              onClick={() => onNavigate('/app/ai-tutor')}
+              className="hidden sm:flex flex-col items-center justify-center px-4 py-2.5 rounded-2xl glass-card border-slate-800 hover:border-slate-700 transition-all cursor-pointer group"
+              title="Launch Study Tutor"
+            >
+              <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+                <MessageSquare className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-mono text-slate-400 font-medium mt-1 group-hover:text-slate-200 transition-colors flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                Tutor Ready
+              </span>
+            </div>
+
+            <div className="px-5 py-3 rounded-2xl glass-card border-gray-800 text-center">
+              <div className="flex items-center justify-center gap-1.5 text-amber-400 font-bold text-lg">
+                <Flame className="w-5 h-5 fill-amber-400" />
+                {quizAttempts.length > 0 ? '1 Day' : '0 Days'}
+              </div>
+              <div className="text-[11px] text-gray-400 font-medium">Study Streak</div>
+            </div>
+
+            <div className="px-5 py-3 rounded-2xl glass-card border-gray-800 text-center">
+              <div className="flex items-center justify-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold text-lg">
+                <Clock className="w-5 h-5" />
+                {quizAttempts.length * 0.5} hrs
+              </div>
+              <div className="text-[11px] text-gray-400 font-medium">This Week</div>
+            </div>
+          </div>
         </div>
-
-        <div className="flex items-center gap-4 relative z-10 shrink-0">
-          {/* Quick Assistant Launcher Tile */}
-          <div
-            onClick={() => onNavigate('/app/ai-tutor')}
-            className="hidden sm:flex flex-col items-center justify-center px-4 py-2.5 rounded-2xl glass-card border-slate-800 hover:border-slate-700 transition-all cursor-pointer group"
-            title="Launch Study Tutor"
-          >
-            <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
-              <MessageSquare className="w-4 h-4" />
-            </div>
-            <span className="text-[10px] font-mono text-slate-400 font-medium mt-1 group-hover:text-slate-200 transition-colors flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Tutor Ready
-            </span>
-          </div>
-
-          <div className="px-5 py-3 rounded-2xl glass-card border-gray-800 text-center">
-            <div className="flex items-center justify-center gap-1.5 text-amber-400 font-bold text-lg">
-              <Flame className="w-5 h-5 fill-amber-400" />
-              {quizAttempts.length > 0 ? '1 Day' : '0 Days'}
-            </div>
-            <div className="text-[11px] text-gray-400 font-medium">Study Streak</div>
-          </div>
-
-          <div className="px-5 py-3 rounded-2xl glass-card border-gray-800 text-center">
-            <div className="flex items-center justify-center gap-1.5 text-blue-600 dark:text-blue-400 font-bold text-lg">
-              <Clock className="w-5 h-5" />
-              {quizAttempts.length * 0.5} hrs
-            </div>
-            <div className="text-[11px] text-gray-400 font-medium">This Week</div>
-          </div>
-        </div>
-      </div>
+      </TiltCard3D>
 
       {/* Quick Action Tiles */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <button
-          onClick={() => onNavigate('/app/ai-tutor')}
-          className="p-5 rounded-2xl glass-card border-gray-800 hover:border-blue-500/50 text-left transition-all group flex items-center justify-between"
-        >
-          <div className="space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-500/30 group-hover:scale-110 transition-transform">
-              <MessageSquare className="w-5 h-5" />
+        <TiltCard3D maxTilt={7} className="h-full">
+          <button
+            onClick={() => onNavigate('/app/ai-tutor')}
+            className="w-full h-full p-5 rounded-2xl glass-card border-gray-800 hover:border-blue-500/50 text-left transition-all group flex items-center justify-between cursor-pointer"
+          >
+            <div className="space-y-1">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-600/20 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-500/30 group-hover:scale-110 transition-transform">
+                <MessageSquare className="w-5 h-5" />
+              </div>
+              <div className="font-bold text-sm text-gray-100 mt-2">Study Tutor</div>
+              <div className="text-xs text-gray-400">Structured explanations</div>
             </div>
-            <div className="font-bold text-sm text-gray-100 mt-2">Study Tutor</div>
-            <div className="text-xs text-gray-400">Structured explanations</div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-blue-400 transition-all" />
-        </button>
+            <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-blue-400 transition-all" />
+          </button>
+        </TiltCard3D>
 
-        <button
-          onClick={() => onNavigate('/app/pdf-analyzer')}
-          className="p-5 rounded-2xl glass-card border-gray-800 hover:border-cyan-500/50 text-left transition-all group flex items-center justify-between"
-        >
-          <div className="space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition-transform">
-              <Upload className="w-5 h-5" />
+        <TiltCard3D maxTilt={7} className="h-full">
+          <button
+            onClick={() => onNavigate('/app/pdf-analyzer')}
+            className="w-full h-full p-5 rounded-2xl glass-card border-gray-800 hover:border-cyan-500/50 text-left transition-all group flex items-center justify-between cursor-pointer"
+          >
+            <div className="space-y-1">
+              <div className="w-10 h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30 group-hover:scale-110 transition-transform">
+                <Upload className="w-5 h-5" />
+              </div>
+              <div className="font-bold text-sm text-gray-100 mt-2">Upload PDF</div>
+              <div className="text-xs text-gray-400">Smart summaries & Q&A</div>
             </div>
-            <div className="font-bold text-sm text-gray-100 mt-2">Upload PDF</div>
-            <div className="text-xs text-gray-400">Smart summaries & Q&A</div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-cyan-400 transition-all" />
-        </button>
+            <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-cyan-400 transition-all" />
+          </button>
+        </TiltCard3D>
 
-        <button
-          onClick={() => onNavigate('/app/quiz')}
-          className="p-5 rounded-2xl glass-card border-gray-800 hover:border-blue-500/50 text-left transition-all group flex items-center justify-between"
-        >
-          <div className="space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30 group-hover:scale-110 transition-transform">
-              <HelpCircle className="w-5 h-5" />
+        <TiltCard3D maxTilt={7} className="h-full">
+          <button
+            onClick={() => onNavigate('/app/quiz')}
+            className="w-full h-full p-5 rounded-2xl glass-card border-gray-800 hover:border-blue-500/50 text-left transition-all group flex items-center justify-between cursor-pointer"
+          >
+            <div className="space-y-1">
+              <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 flex items-center justify-center border border-blue-500/30 group-hover:scale-110 transition-transform">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <div className="font-bold text-sm text-gray-100 mt-2">Start Quiz</div>
+              <div className="text-xs text-gray-400">Practice questions</div>
             </div>
-            <div className="font-bold text-sm text-gray-100 mt-2">Start Quiz</div>
-            <div className="text-xs text-gray-400">Practice questions</div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-blue-400 transition-all" />
-        </button>
+            <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-blue-400 transition-all" />
+          </button>
+        </TiltCard3D>
 
-        <button
-          onClick={() => onNavigate('/app/planner')}
-          className="p-5 rounded-2xl glass-card border-gray-800 hover:border-amber-500/50 text-left transition-all group flex items-center justify-between"
-        >
-          <div className="space-y-1">
-            <div className="w-10 h-10 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center border border-amber-500/30 group-hover:scale-110 transition-transform">
-              <Calendar className="w-5 h-5" />
+        <TiltCard3D maxTilt={7} className="h-full">
+          <button
+            onClick={() => onNavigate('/app/planner')}
+            className="w-full h-full p-5 rounded-2xl glass-card border-gray-800 hover:border-amber-500/50 text-left transition-all group flex items-center justify-between cursor-pointer"
+          >
+            <div className="space-y-1">
+              <div className="w-10 h-10 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center border border-amber-500/30 group-hover:scale-110 transition-transform">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div className="font-bold text-sm text-gray-100 mt-2">Plan Study</div>
+              <div className="text-xs text-gray-400">Task calendar</div>
             </div>
-            <div className="font-bold text-sm text-gray-100 mt-2">Plan Study</div>
-            <div className="text-xs text-gray-400">Task calendar</div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-amber-400 transition-all" />
-        </button>
+            <ChevronRight className="w-4 h-4 text-gray-500 group-hover:translate-x-1 group-hover:text-amber-400 transition-all" />
+          </button>
+        </TiltCard3D>
       </div>
 
       {/* Weak Topic Alert Widget */}

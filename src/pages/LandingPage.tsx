@@ -22,6 +22,8 @@ import {
   Compass,
 } from 'lucide-react';
 import { LearningNetwork3D } from '../components/3d/LearningNetwork3D';
+import { InteractiveBackground3D } from '../components/3d/InteractiveBackground3D';
+import { TiltCard3D } from '../components/3d/TiltCard3D';
 
 interface LandingPageProps {
   onNavigate: (path: string) => void;
@@ -113,6 +115,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-blue-600 selection:text-white relative">
+      {/* Dynamic 3D Neural Constellation Background with Cursor Tracking */}
+      <InteractiveBackground3D intensity="vibrant" />
+
       {/* Navigation Header */}
       <header className="sticky top-0 z-40 w-full bg-slate-950/80 border-b border-slate-800/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -275,31 +280,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           {featureCards.map((card, idx) => {
             const IconComponent = card.icon;
             return (
-              <div
-                key={idx}
-                className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 flex flex-col justify-between transition-all group"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center text-slate-300 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-colors">
-                      <IconComponent className="w-4 h-4" />
-                    </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700/80">
-                      {card.tag}
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-medium text-slate-200 mb-2 group-hover:text-blue-300 transition-colors">
-                    {card.title}
-                  </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed font-normal">{card.description}</p>
-                </div>
-                <button
-                  onClick={() => onNavigate('/register')}
-                  className="mt-5 text-xs font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1 group-hover:translate-x-1 transition-all"
+              <TiltCard3D key={idx} className="h-full">
+                <div
+                  className="h-full p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700/80 backdrop-blur-md flex flex-col justify-between transition-all group"
                 >
-                  View Feature <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-9 h-9 rounded-xl bg-slate-800/90 border border-slate-700/60 flex items-center justify-center text-slate-300 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-colors">
+                        <IconComponent className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700/80">
+                        {card.tag}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-medium text-slate-200 mb-2 group-hover:text-blue-300 transition-colors">
+                      {card.title}
+                    </h3>
+                    <p className="text-xs text-slate-400 leading-relaxed font-normal">{card.description}</p>
+                  </div>
+                  <button
+                    onClick={() => onNavigate('/register')}
+                    className="mt-5 text-xs font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1 group-hover:translate-x-1 transition-all"
+                  >
+                    View Feature <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </TiltCard3D>
             );
           })}
         </div>
@@ -318,18 +324,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           {steps.map((step, index) => {
             const StepIcon = step.icon;
             return (
-              <div key={index} className="p-6 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-mono text-slate-500 font-medium">
-                    {step.number}
-                  </span>
-                  <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                    <StepIcon className="w-4 h-4" />
+              <TiltCard3D key={index} className="h-full">
+                <div className="h-full p-6 rounded-2xl bg-slate-900/60 border border-slate-800 backdrop-blur-md space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-mono text-slate-500 font-medium">
+                      {step.number}
+                    </span>
+                    <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+                      <StepIcon className="w-4 h-4" />
+                    </div>
                   </div>
+                  <h3 className="text-sm font-medium text-slate-200">{step.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed font-normal">{step.description}</p>
                 </div>
-                <h3 className="text-sm font-medium text-slate-200">{step.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed font-normal">{step.description}</p>
-              </div>
+              </TiltCard3D>
             );
           })}
         </div>

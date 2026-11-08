@@ -22,6 +22,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { GraduationCap } from 'lucide-react';
 import { BrandLogo } from './components/common/BrandLogo';
+import { InteractiveBackground3D } from './components/3d/InteractiveBackground3D';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -121,7 +122,10 @@ const AppContent: React.FC = () => {
 
   // 5. Application Protected Dashboard Shell
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex transition-colors duration-250">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex transition-colors duration-250 relative">
+      {/* Dynamic 3D Neural Constellation Ambient Background */}
+      <InteractiveBackground3D intensity="subtle" />
+
       {/* Sidebar Navigation */}
       <Sidebar
         currentPath={currentPath}
