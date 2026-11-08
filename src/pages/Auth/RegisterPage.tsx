@@ -34,12 +34,15 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate, onSucces
     setErrorMessage('');
     setIsGoogleLoading(true);
     try {
+      sessionStorage.setItem('studysphere_play_book_transition', '1');
       const res = await loginWithGoogle();
       if (!res.success) {
+        sessionStorage.removeItem('studysphere_play_book_transition');
         setErrorMessage(res.error || 'Failed to initialize Google Sign-In.');
         setIsGoogleLoading(false);
       }
     } catch (err: any) {
+      sessionStorage.removeItem('studysphere_play_book_transition');
       setErrorMessage(err?.message || 'Unexpected error with Google Sign-In.');
       setIsGoogleLoading(false);
     }

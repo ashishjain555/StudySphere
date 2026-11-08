@@ -23,12 +23,14 @@ import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { GraduationCap } from 'lucide-react';
 import { BrandLogo } from './components/common/BrandLogo';
 import { InteractiveBackground3D } from './components/3d/InteractiveBackground3D';
+import { BookOpeningTransition } from './components/3d/BookOpeningTransition';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname || '/');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isOpeningBook, setIsOpeningBook] = useState(false);
 
   // States passed between features
   const [aiInitialQuery, setAiInitialQuery] = useState<string>('');
@@ -51,6 +53,13 @@ const AppContent: React.FC = () => {
 
   // Route protection and redirection guards
   useEffect(() => {
+    if (user && !loading && sessionStorage.getItem('studysphere_play_book_transition') === '1') {
+      sessionStorage.removeItem('studysphere_play_book_transition');
+      setIsOpeningBook(true);
+    }
+  }, [user, loading]);
+
+  useEffect(() => {
     const isRecovery =
       window.location.hash.includes('type=recovery') ||
       window.location.search.includes('type=recovery');
@@ -66,7 +75,9 @@ const AppContent: React.FC = () => {
 
     // If logged-in user visits auth pages, redirect to dashboard
     if (user && (currentPath === '/login' || currentPath === '/register')) {
-      navigate('/app/dashboard');
+      if (!isOpeningBook) {
+        navigate('/app/dashboard');
+      }
     }
     // If unauthenticated user tries to directly access protected /app/* routes, redirect to login
     else if (!user && currentPath.startsWith('/app')) {
@@ -97,13 +108,29 @@ const AppContent: React.FC = () => {
     );
   }
 
+  const handleAuthSuccess = () => {
+    setIsOpeningBook(true);
+  };
+
+  // 3D Magical Book Opening Transition after Sign In / Registration
+  if (isOpeningBook) {
+    return (
+      <BookOpeningTransition
+        onComplete={() => {
+          setIsOpeningBook(false);
+          navigate('/app/dashboard');
+        }}
+      />
+    );
+  }
+
   // 2. Standalone Auth Pages
   if (currentPath === '/login') {
-    return <LoginPage onNavigate={navigate} onSuccess={() => navigate('/app/dashboard')} />;
+    return <LoginPage onNavigate={navigate} onSuccess={handleAuthSuccess} />;
   }
 
   if (currentPath === '/register') {
-    return <RegisterPage onNavigate={navigate} onSuccess={() => navigate('/app/dashboard')} />;
+    return <RegisterPage onNavigate={navigate} onSuccess={handleAuthSuccess} />;
   }
 
   if (currentPath === '/forgot-password') {
