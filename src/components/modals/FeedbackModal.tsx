@@ -105,7 +105,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
       <div
-        className="w-full max-w-lg rounded-3xl glass-panel bg-slate-950/95 border border-slate-800 shadow-2xl p-6 sm:p-8 relative text-slate-100"
+        className="w-full max-w-lg rounded-3xl glass-panel bg-slate-950/95 border border-slate-800 shadow-2xl p-6 sm:p-8 relative text-slate-100 animate-modalPop"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}

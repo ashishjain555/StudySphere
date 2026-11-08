@@ -93,7 +93,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/70 backdrop-blur-md animate-fadeIn">
-      <div className="w-full max-w-2xl glass-panel bg-gray-900/90 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+      <div className="w-full max-w-2xl glass-panel bg-gray-900/90 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-modalPop">
         {/* Top Search Bar */}
         <div className="relative flex items-center px-4 py-3.5 border-b border-gray-800">
           <Search className="w-5 h-5 text-gray-400 mr-3 shrink-0" />

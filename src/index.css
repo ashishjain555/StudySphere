@@ -228,3 +228,84 @@
   0% { transform: scale(0.6); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* ==========================================================================
+   BUTTER-SMOOTH CLICK FEEDBACK & MODAL OPENING ANIMATIONS
+   Tactile haptic visual response across all buttons, cards & modals
+   ========================================================================== */
+
+/* Universal tactile button & clickable element feedback */
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+.cursor-pointer {
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background-color 0.15s ease,
+              border-color 0.15s ease,
+              box-shadow 0.15s ease,
+              opacity 0.15s ease !important;
+}
+
+button:active:not(:disabled),
+[role="button"]:active:not(:disabled),
+input[type="submit"]:active:not(:disabled),
+input[type="button"]:active:not(:disabled) {
+  transform: scale(0.96) translateY(1px) !important;
+}
+
+/* Smooth Interactive Cards Click Response */
+.glass-card,
+.glass-panel {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.2s ease,
+              box-shadow 0.2s ease !important;
+}
+
+/* Butter-Smooth Pop-In Animation for All Modals & Dialogs */
+@keyframes smoothModalPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(18px);
+  }
+  65% {
+    transform: scale(1.008) translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes smoothFadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes smoothSlideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: smoothFadeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modalPop {
+  animation: smoothModalPop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideUp {
+  animation: smoothSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
