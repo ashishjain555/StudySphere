@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { AboutModal } from '../components/modals/AboutModal';
+import { PrivacyPolicyModal } from '../components/modals/PrivacyPolicyModal';
+import { FeedbackModal } from '../components/modals/FeedbackModal';
 import {
   User,
   Mail,
@@ -18,6 +21,8 @@ import {
   HelpCircle,
   AlertCircle,
   Sparkles,
+  Info,
+  MessageSquareHeart,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DataStore } from '../lib/dataStore';
@@ -64,6 +69,9 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
   // Logout Modal State
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // Platform Metrics
   const subjectsCount = DataStore.getSubjects().length;
@@ -496,6 +504,54 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
               </form>
             )}
 
+            {/* Platform, Policies & Feedback */}
+            <div className="pt-2 border-t border-gray-800/80">
+              <h4 className="text-xs font-bold text-gray-200 mb-3">Platform, Policies & Feedback</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsAboutOpen(true)}
+                  className="p-3 rounded-2xl bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2 text-indigo-400 font-semibold text-xs mb-1">
+                    <Info className="w-3.5 h-3.5" />
+                    <span>About Platform</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 group-hover:text-gray-300">
+                    Mission, creator info & tech stack
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsPrivacyOpen(true)}
+                  className="p-3 rounded-2xl bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs mb-1">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Privacy Policy</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 group-hover:text-gray-300">
+                    Zero data selling & PDF privacy
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFeedbackOpen(true)}
+                  className="p-3 rounded-2xl bg-indigo-950/20 hover:bg-indigo-950/40 border border-indigo-500/20 hover:border-indigo-500/40 text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2 text-indigo-300 font-semibold text-xs mb-1">
+                    <MessageSquareHeart className="w-3.5 h-3.5" />
+                    <span>Share Feedback</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 group-hover:text-gray-300">
+                    Report an issue or suggest a feature
+                  </p>
+                </button>
+              </div>
+            </div>
+
             {/* Session Management & Safe Logout */}
             <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -559,6 +615,28 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
           </div>
         </div>
       )}
-    </div>
+    
+      {/* About Modal */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+        onOpenAbout={() => setIsAboutOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
+</div>
   );
 };

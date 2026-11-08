@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrandLogo } from '../components/common/BrandLogo';
+import { AboutModal } from '../components/modals/AboutModal';
+import { PrivacyPolicyModal } from '../components/modals/PrivacyPolicyModal';
+import { FeedbackModal } from '../components/modals/FeedbackModal';
 import {
   GraduationCap,
   MessageSquare,
@@ -26,6 +29,10 @@ interface LandingPageProps {
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+
   const featureCards = [
     {
       icon: MessageSquare,
@@ -124,7 +131,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-slate-300">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-300">
             <a href="#features" className="hover:text-white transition-colors">
               Features
             </a>
@@ -134,6 +141,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <a href="#how-it-works" className="hover:text-white transition-colors">
               Workflow
             </a>
+            <button
+              onClick={() => setIsAboutOpen(true)}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              About
+            </button>
+            <button
+              onClick={() => setIsFeedbackOpen(true)}
+              className="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 hover:text-white transition-colors cursor-pointer border border-indigo-500/20 font-medium"
+            >
+              Feedback
+            </button>
           </nav>
 
           {/* Actions */}
@@ -323,9 +342,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <BrandLogo size="sm" />
             <span className="font-medium text-slate-200 text-xs">StudySphere</span>
           </div>
-          <div className="flex items-center gap-6 text-slate-400 text-xs">
+          <div className="flex flex-wrap items-center gap-5 sm:gap-6 text-slate-400 text-xs">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">Workflow</a>
+            <button onClick={() => setIsAboutOpen(true)} className="hover:text-white transition-colors cursor-pointer">About Us</button>
+            <button onClick={() => setIsPrivacyOpen(true)} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
+            <button onClick={() => setIsFeedbackOpen(true)} className="hover:text-indigo-400 text-indigo-300 font-medium transition-colors cursor-pointer">Give Feedback</button>
             <button onClick={() => onNavigate('/login')} className="hover:text-white transition-colors cursor-pointer">Sign In</button>
           </div>
           <div className="text-slate-500 text-[11px]">
@@ -333,6 +355,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
         </div>
       </footer>
+
+      {/* About Modal */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+        onOpenAbout={() => setIsAboutOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
     </div>
   );
 };

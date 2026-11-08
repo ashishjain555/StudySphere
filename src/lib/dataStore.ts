@@ -11,6 +11,7 @@ import {
   UserProfile,
   AnalyzedPDFRecord,
   TeacherNotification,
+  UserFeedback,
 } from '../types';
 import { STORAGE_KEYS } from './supabase';
 import { PDFStorage } from './pdfStorage';
@@ -941,6 +942,19 @@ export const DataStore = {
     setStored(STORAGE_KEYS.NOTIFICATIONS, []);
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('studysphere:notification_update'));
+    }
+  },
+
+  getFeedbackList(): UserFeedback[] {
+    return getStored<UserFeedback[]>('studysphere_user_feedback', []);
+  },
+
+  saveFeedback(feedback: UserFeedback): void {
+    const list = this.getFeedbackList();
+    const updated = [feedback, ...list];
+    setStored('studysphere_user_feedback', updated);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:feedback_submitted', { detail: feedback }));
     }
   },
 };

@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { BrandLogo } from '../common/BrandLogo';
+import { AboutModal } from '../modals/AboutModal';
+import { PrivacyPolicyModal } from '../modals/PrivacyPolicyModal';
+import { FeedbackModal } from '../modals/FeedbackModal';
 import {
   LayoutDashboard,
   BookOpen,
@@ -16,6 +19,8 @@ import {
   GraduationCap,
   X,
   User,
+  MessageSquareHeart,
+  Info,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { UserRole } from '../../types';
@@ -35,6 +40,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const { user, logout, switchRole } = useAuth();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   interface NavItem {
     label: string;
@@ -160,6 +168,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </span>
           </div>
 
+          {/* Quick Utility Links (Feedback, About, Privacy) */}
+          <div className="flex items-center justify-between text-[11px] text-gray-400 py-1.5 px-1 border-t border-gray-800/60 mb-2">
+            <button
+              type="button"
+              onClick={() => setIsFeedbackOpen(true)}
+              className="hover:text-indigo-300 text-indigo-400 flex items-center gap-1 transition-colors cursor-pointer font-medium"
+            >
+              <MessageSquareHeart className="w-3.5 h-3.5" />
+              <span>Feedback</span>
+            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAboutOpen(true)}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                About
+              </button>
+              <span className="text-gray-600">•</span>
+              <button
+                type="button"
+                onClick={() => setIsPrivacyOpen(true)}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                Privacy
+              </button>
+            </div>
+          </div>
+
           {/* User Info & Logout */}
           <div className="flex items-center justify-between">
             <div
@@ -233,6 +270,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       )}
+      {/* About Modal */}
+      <AboutModal
+        isOpen={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
+
+      {/* Privacy Policy Modal */}
+      <PrivacyPolicyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
+        onOpenAbout={() => setIsAboutOpen(true)}
+        onOpenFeedback={() => setIsFeedbackOpen(true)}
+      />
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+      />
     </>
   );
 };

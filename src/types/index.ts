@@ -215,3 +215,12 @@ export interface TeacherNotification {
   isRead: boolean;
 }
 
+export interface UserFeedback {
+  id: string;
+  rating: number; // 1 to 5
+  category: string;
+  message: string;
+  email?: string;
+  createdAt: string;
+}
+
