@@ -3,6 +3,7 @@
 # 🎓 StudySphere AI
 ### *Next-Generation Intelligent Student Learning & Curriculum Intelligence Platform*
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-studysphere--ai--rktl.onrender.com-success?style=for-the-badge&logo=render&logoColor=white)](https://studysphere-ai-rktl.onrender.com)
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -14,9 +15,14 @@
 
 <br/>
 
+> 🚀 **Live Production URL**: [**https://studysphere-ai-rktl.onrender.com**](https://studysphere-ai-rktl.onrender.com)  
+> *Access the live platform globally with 1-Click Google OAuth, real-time Gemini AI, interactive PDF analysis, and dynamic study planning!*
+
+<br/>
+
 **StudySphere AI** is a full-stack, AI-orchestrated academic platform designed to empower university students. It combines deep multi-topic PDF parsing, dual-language comprehension (English & conversational Hinglish), adaptive weak-topic detection, dynamic monthly task scheduling, 1-Click Google OAuth, and interactive 3D visualizations into one distraction-free interface.
 
-[Key Features](#-key-features) • [System Architecture](#-system-architecture) • [Tech Stack](#-technology-stack) • [Installation](#-getting-started) • [API Reference](#-backend-api-reference) • [Security](#-security--key-isolation)
+[Live Demo](https://studysphere-ai-rktl.onrender.com) • [Key Features](#-key-features) • [System Architecture](#-system-architecture) • [Tech Stack](#-technology-stack) • [Installation](#-getting-started) • [API Reference](#-backend-api-reference) • [Security](#-security--key-isolation)
 
 ---
 
