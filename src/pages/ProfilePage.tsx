@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AboutModal } from '../components/modals/AboutModal';
 import { PrivacyPolicyModal } from '../components/modals/PrivacyPolicyModal';
 import { FeedbackModal } from '../components/modals/FeedbackModal';
+import { FeedbackInboxModal } from '../components/modals/FeedbackInboxModal';
 import {
   User,
   Mail,
@@ -24,6 +25,7 @@ import {
   Info,
   MessageSquareHeart,
   Pencil,
+  Inbox,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DataStore } from '../lib/dataStore';
@@ -74,6 +76,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isFeedbackInboxOpen, setIsFeedbackInboxOpen] = useState(false);
 
   // Platform Metrics
   const subjectsCount = DataStore.getSubjects().length;
@@ -649,7 +652,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
             {/* Platform, Policies & Feedback */}
             <div className="pt-2 border-t border-gray-800/80">
               <h4 className="text-xs font-bold text-gray-200 mb-3">Platform, Policies & Feedback</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsAboutOpen(true)}
@@ -689,6 +692,20 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                   </div>
                   <p className="text-[11px] text-gray-400 group-hover:text-gray-300">
                     Report an issue or suggest a feature
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsFeedbackInboxOpen(true)}
+                  className="p-3 rounded-2xl bg-amber-950/20 hover:bg-amber-950/40 border border-amber-500/25 hover:border-amber-500/40 text-left transition-all cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2 text-amber-300 font-semibold text-xs mb-1">
+                    <Inbox className="w-3.5 h-3.5" />
+                    <span>Feedback Inbox</span>
+                  </div>
+                  <p className="text-[11px] text-gray-400 group-hover:text-gray-300">
+                    View student reviews & ratings
                   </p>
                 </button>
               </div>
@@ -778,6 +795,12 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
+      />
+
+      {/* Feedback Inbox Modal (Admin / Creator) */}
+      <FeedbackInboxModal
+        isOpen={isFeedbackInboxOpen}
+        onClose={() => setIsFeedbackInboxOpen(false)}
       />
 </div>
   );

@@ -6,6 +6,7 @@ import {
   QuizAttempt,
   WeakTopic,
   ChatMessage,
+  UserFeedback,
 } from '../types';
 import {
   INITIAL_SUBJECTS,
@@ -472,6 +473,54 @@ export async function fetchWeakTopicsFromSupabase(): Promise<WeakTopic[] | null>
       status: d.status,
     }));
   } catch {
+    return null;
+  }
+}
+
+/**
+ * 12. FEEDBACK: Synchronize student feedback directly into Supabase table 'feedbacks'
+ */
+export async function syncFeedbackToSupabase(feedback: UserFeedback): Promise<void> {
+  if (!isSupabaseConfigured || !feedback.id) return;
+  try {
+    const authUserId = await getAuthUserId();
+    const payload = {
+      id: feedback.id,
+      user_id: toValidUUID(authUserId),
+      email: feedback.email || 'anonymous@student.com',
+      rating: feedback.rating || 5,
+      category: feedback.category || 'general',
+      message: feedback.message || '',
+      created_at: feedback.createdAt || new Date().toISOString(),
+    };
+    await supabase.from('feedbacks').upsert(payload, { onConflict: 'id' });
+  } catch (err) {
+    console.warn('Notice: Supabase feedback sync note:', err);
+  }
+}
+
+/**
+ * 12b. FEEDBACK: Fetch all student feedbacks from Supabase
+ */
+export async function fetchFeedbacksFromSupabase(): Promise<UserFeedback[] | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const { data, error } = await supabase
+      .from('feedbacks')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error || !data || data.length === 0) return null;
+    return data.map((d: any) => ({
+      id: d.id,
+      rating: d.rating,
+      category: d.category,
+      message: d.message,
+      email: d.email,
+      createdAt: d.created_at,
+    }));
+  } catch (err) {
+    console.warn('Notice: Fetch feedbacks from Supabase note:', err);
     return null;
   }
 }

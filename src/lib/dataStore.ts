@@ -30,6 +30,8 @@ import {
   fetchWeakTopicsFromSupabase,
   syncAIMessageToSupabase,
   autoSeedCurriculumToSupabase,
+  syncFeedbackToSupabase,
+  fetchFeedbacksFromSupabase,
 } from './supabaseSync';
 
 function getStored<T>(key: string, defaultVal: T): T {
@@ -956,5 +958,23 @@ export const DataStore = {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('studysphere:feedback_submitted', { detail: feedback }));
     }
+    // Asynchronously synchronize directly to Supabase table
+    syncFeedbackToSupabase(feedback).catch((err) => {
+      console.warn('DataStore Supabase feedback sync note:', err);
+    });
+  },
+
+  async syncFeedbacksFromSupabase(): Promise<UserFeedback[]> {
+    try {
+      const remote = await fetchFeedbacksFromSupabase();
+      if (remote && remote.length > 0) {
+        setStored('studysphere_user_feedback', remote);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('studysphere:feedback_update'));
+        }
+        return remote;
+      }
+    } catch {}
+    return this.getFeedbackList();
   },
 };
