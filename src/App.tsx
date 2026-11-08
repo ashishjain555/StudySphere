@@ -24,6 +24,7 @@ import { GraduationCap } from 'lucide-react';
 import { BrandLogo } from './components/common/BrandLogo';
 import { InteractiveBackground3D } from './components/3d/InteractiveBackground3D';
 import { BookOpeningTransition } from './components/3d/BookOpeningTransition';
+import { CustomCursorFX } from './components/common/CustomCursorFX';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -243,6 +244,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <CustomCursorFX />
         <AppContent />
       </AuthProvider>
     </ThemeProvider>
