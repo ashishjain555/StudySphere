@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BrandLogo } from '../common/BrandLogo';
 import {
   LayoutDashboard,
   BookOpen,
@@ -86,9 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
               className="flex items-center gap-3 cursor-pointer group"
             >
-              <div className="w-9 h-9 rounded-xl bg-blue-600 border border-blue-500/30 flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-white" />
-              </div>
+              <BrandLogo size="md" />
               <div>
                 <span className="font-bold text-slate-100 text-base tracking-tight">StudySphere</span>
                 <span className="block text-[9px] uppercase font-mono tracking-wider text-slate-400 font-semibold">

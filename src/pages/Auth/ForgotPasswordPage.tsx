@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, GraduationCap, ArrowRight, CheckCircle2, ArrowLeft, KeyRound, Lock, Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { BrandLogo } from '../../components/common/BrandLogo';
 
 interface ForgotPasswordPageProps {
   onNavigate: (path: string) => void;
@@ -145,9 +146,7 @@ export const ForgotPasswordPage: React.FC<ForgotPasswordPageProps> = ({ onNaviga
         {/* Logo Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-9 h-9 rounded-xl bg-blue-600 border border-blue-400/30 flex items-center justify-center shadow-lg shadow-blue-600/20">
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
+            <BrandLogo size="md" />
             <span className="text-xl font-medium text-white tracking-tight">StudySphere</span>
           </div>
           <h2 className="text-2xl font-medium text-slate-100">

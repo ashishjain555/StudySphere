@@ -21,6 +21,7 @@ import { TeacherAdminPage } from './pages/TeacherAdminPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { GraduationCap } from 'lucide-react';
+import { BrandLogo } from './components/common/BrandLogo';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
@@ -88,9 +89,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-slate-950 text-slate-100">
         <div className="flex flex-col items-center gap-3 animate-fadeIn">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/30 animate-pulse">
-            <GraduationCap className="w-6 h-6 text-white" />
-          </div>
+          <BrandLogo size="lg" className="animate-pulse" />
           <p className="text-xs text-slate-400 font-mono tracking-wide">Restoring session...</p>
         </div>
       </div>

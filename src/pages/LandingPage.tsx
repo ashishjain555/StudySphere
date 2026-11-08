@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrandLogo } from '../components/common/BrandLogo';
 import {
   GraduationCap,
   MessageSquare,
@@ -113,9 +114,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             onClick={() => onNavigate('/')}
             className="flex items-center gap-3 cursor-pointer group"
           >
-            <div className="w-9 h-9 rounded-xl bg-blue-600 border border-blue-400/30 flex items-center justify-center shadow-sm">
-              <GraduationCap className="w-5 h-5 text-white" />
-            </div>
+            <BrandLogo size="md" />
             <div>
               <span className="text-base font-semibold text-white tracking-tight">StudySphere</span>
               <span className="hidden sm:block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-medium">
@@ -321,9 +320,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       <footer className="py-10 border-t border-slate-800/80 bg-slate-950 text-xs text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
-              <GraduationCap className="w-4 h-4" />
-            </div>
+            <BrandLogo size="sm" />
             <span className="font-medium text-slate-200 text-xs">StudySphere</span>
           </div>
           <div className="flex items-center gap-6 text-slate-400 text-xs">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BrandLogo } from '../common/BrandLogo';
 import {
   Search,
   MessageSquare,
@@ -114,10 +115,14 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center gap-4 flex-1 max-w-xl">
         <button
           onClick={onToggleMobileSidebar}
-          className="lg:hidden p-2 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 hover:text-white"
+          className="lg:hidden p-2 rounded-xl bg-gray-900 border border-gray-800 text-gray-300 hover:text-white shrink-0"
         >
           <Menu className="w-5 h-5" />
         </button>
+
+        <div onClick={() => onNavigate('/app/dashboard')} className="lg:hidden flex items-center gap-2 cursor-pointer shrink-0">
+          <BrandLogo size="sm" />
+        </div>
 
         {/* Global Search Bar */}
         <div
