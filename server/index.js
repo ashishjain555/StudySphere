@@ -36,14 +36,32 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:4173',
-  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : [])
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : []),
+  ...(process.env.APP_URL ? [process.env.APP_URL.trim()] : [])
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+    // Allow requests with no origin (e.g., same-origin navigation, server-to-server, curl)
+    if (!origin) return callback(null, true);
+
+    // Explicitly allowed origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Automatically allow deployments on Render, Vercel, Railway, or local addresses
+    try {
+      const url = new URL(origin);
+      if (
+        url.hostname === 'localhost' ||
+        url.hostname === '127.0.0.1' ||
+        url.hostname.endsWith('.onrender.com') ||
+        url.hostname.endsWith('.vercel.app') ||
+        url.hostname.endsWith('.railway.app')
+      ) {
+        return callback(null, true);
+      }
+    } catch (e) {}
+
     return callback(new Error('Cross-Origin Request Blocked by StudySphere CORS Policy.'));
   },
   credentials: true,
@@ -1148,17 +1166,19 @@ app.use((req, res) => {
 
 import http from 'http';
 
-// Companion port 3000 redirector to 5173
-try {
-  const redirectServer = http.createServer((req, res) => {
-    res.writeHead(302, { Location: `http://localhost:5173${req.url || ''}` });
-    res.end();
-  });
-  redirectServer.on('error', () => {});
-  redirectServer.listen(3000, '0.0.0.0', () => {
-    console.log('🔗 Port 3000 redirect active -> http://localhost:5173');
-  });
-} catch (e) {}
+// Companion port 3000 redirector to 5173 (local development only)
+if (process.env.NODE_ENV !== 'production' && !process.env.RENDER && !process.env.PORT) {
+  try {
+    const redirectServer = http.createServer((req, res) => {
+      res.writeHead(302, { Location: `http://localhost:5173${req.url || ''}` });
+      res.end();
+    });
+    redirectServer.on('error', () => {});
+    redirectServer.listen(3000, '0.0.0.0', () => {
+      console.log('🔗 Port 3000 redirect active -> http://localhost:5173');
+    });
+  } catch (e) {}
+}
 
 const serverInstance = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 StudySphere Server listening on http://0.0.0.0:${PORT} (http://localhost:${PORT})`);
