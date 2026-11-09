@@ -1105,7 +1105,7 @@ app.post('/api/feedback', async (req, res) => {
     console.log(`📩 [StudySphere Feedback] [${feedbackRecord.rating}★] [${feedbackRecord.category}] from: ${feedbackRecord.email}`);
 
     // 2. Dispatch email to StudySphere owner/admin if email provider configured
-    const web3formsKey = process.env.WEB3FORMS_ACCESS_KEY || process.env.FEEDBACK_ACCESS_KEY;
+    const web3formsKey = process.env.WEB3FORMS_ACCESS_KEY || process.env.FEEDBACK_ACCESS_KEY || '9a5e9424-3cb4-4670-9d7a-8fde289697fc';
     const resendKey = process.env.RESEND_API_KEY;
     const formspreeUrl = process.env.FORMSPREE_ENDPOINT;
     const adminEmail = process.env.ADMIN_EMAIL || process.env.FEEDBACK_RECEIVER_EMAIL || 'studysphere137@gmail.com';

@@ -98,24 +98,31 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       console.warn('Backend feedback dispatch notification:', err);
     }
 
-    // 3. Client-side direct Web3Forms forward if configured (Zero activation emails)
-    const clientWeb3Key = (import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY;
+    // 3. Client-side direct Web3Forms forward (Zero activation emails, direct to studysphere137@gmail.com)
+    const clientWeb3Key = (import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY || '9a5e9424-3cb4-4670-9d7a-8fde289697fc';
     if (clientWeb3Key) {
       try {
+        const formData = new FormData();
+        formData.append('access_key', clientWeb3Key);
+        formData.append('subject', `[StudySphere Feedback] ${rating}★ Review (${category.toUpperCase()})`);
+        formData.append('from_name', `StudySphere Student (${studentEmail})`);
+        formData.append('email', studentEmail);
+        formData.append(
+          'message',
+          `🌟 New Student Feedback on StudySphere!\n\n` +
+            `• Rating: ${rating} / 5 Stars\n` +
+            `• Category: ${category}\n` +
+            `• Student Email: ${studentEmail}\n\n` +
+            `Student Message:\n"${message.trim()}"\n\n` +
+            `— Sent automatically via StudySphere Feedback Engine`
+        );
+
         await fetch('https://api.web3forms.com/submit', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            access_key: clientWeb3Key,
-            subject: `[StudySphere Feedback] ${rating}★ Review (${category.toUpperCase()})`,
-            from_name: `StudySphere Student (${studentEmail})`,
-            email: studentEmail,
-            to_email: 'studysphere137@gmail.com',
-            message: `New Student Feedback:\n• Rating: ${rating}/5\n• Category: ${category}\n• Student: ${studentEmail}\n\n${message.trim()}`,
-          }),
+          body: formData,
         });
       } catch (err) {
-        // Silent fallback
+        console.warn('Web3Forms client dispatch notice:', err);
       }
     }
 
