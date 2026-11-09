@@ -1108,7 +1108,7 @@ app.post('/api/feedback', async (req, res) => {
     const web3formsKey = process.env.WEB3FORMS_ACCESS_KEY || process.env.FEEDBACK_ACCESS_KEY;
     const resendKey = process.env.RESEND_API_KEY;
     const formspreeUrl = process.env.FORMSPREE_ENDPOINT;
-    const adminEmail = process.env.ADMIN_EMAIL || process.env.FEEDBACK_RECEIVER_EMAIL;
+    const adminEmail = process.env.ADMIN_EMAIL || process.env.FEEDBACK_RECEIVER_EMAIL || 'studysphere137@gmail.com';
 
     let emailDelivered = false;
     let providerUsed = 'none';
@@ -1124,13 +1124,14 @@ app.post('/api/feedback', async (req, res) => {
             subject: `[StudySphere Feedback] ${feedbackRecord.rating}★ Review (${feedbackRecord.category.toUpperCase()})`,
             from_name: `StudySphere Student (${feedbackRecord.email})`,
             email: feedbackRecord.email,
+            to_email: 'studysphere137@gmail.com',
             message: `🌟 New Student Feedback on StudySphere!\n\n` +
               `• Rating: ${feedbackRecord.rating} / 5 Stars\n` +
               `• Category: ${feedbackRecord.category}\n` +
               `• Student Email: ${feedbackRecord.email}\n` +
               `• Submitted: ${feedbackRecord.receivedAt}\n\n` +
               `Student Message:\n"${feedbackRecord.message}"\n\n` +
-              `— Sent automatically via StudySphere Feedback Engine`,
+              `— Sent automatically via StudySphere Feedback Engine to studysphere137@gmail.com`,
           }),
         });
         const w3Data = await w3Res.json();

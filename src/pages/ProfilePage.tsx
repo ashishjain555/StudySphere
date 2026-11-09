@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { AboutModal } from '../components/modals/AboutModal';
 import { PrivacyPolicyModal } from '../components/modals/PrivacyPolicyModal';
 import { FeedbackModal } from '../components/modals/FeedbackModal';
-import { FeedbackInboxModal } from '../components/modals/FeedbackInboxModal';
 import {
   User,
   Mail,
@@ -13,6 +12,7 @@ import {
   CheckCircle2,
   Save,
   Lock,
+  KeyRound,
   Eye,
   EyeOff,
   LogOut,
@@ -25,7 +25,6 @@ import {
   Info,
   MessageSquareHeart,
   Pencil,
-  Inbox,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { DataStore } from '../lib/dataStore';
@@ -45,7 +44,14 @@ const AVATAR_PRESETS = [
 ];
 
 export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
-  const { user, updateUserProfile, updatePassword, logout } = useAuth();
+  const {
+    user,
+    updateUserProfile,
+    updatePassword,
+    verifyCurrentPassword,
+    sendPasswordResetOtp,
+    logout,
+  } = useAuth();
 
   // Profile Form State
   const [fullName, setFullName] = useState(user?.fullName || '');
@@ -65,10 +71,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
   // Security: Password Change State
   const [showPasswordSection, setShowPasswordSection] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [isSendingResetEmail, setIsSendingResetEmail] = useState(false);
   const [passwordNotice, setPasswordNotice] = useState<{ message: string; isError?: boolean } | null>(null);
 
   // Logout Modal State
@@ -76,7 +86,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const [isAboutOpen, setIsAboutOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
-  const [isFeedbackInboxOpen, setIsFeedbackInboxOpen] = useState(false);
 
   // Platform Metrics
   const subjectsCount = DataStore.getSubjects().length;
@@ -138,23 +147,53 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
     e.preventDefault();
     setPasswordNotice(null);
 
+    if (!currentPassword) {
+      setPasswordNotice({
+        message: 'Current password is required to verify your identity before making changes.',
+        isError: true,
+      });
+      return;
+    }
     if (newPassword.length < 6) {
-      setPasswordNotice({ message: 'Password must be at least 6 characters long.', isError: true });
+      setPasswordNotice({ message: 'New password must be at least 6 characters long.', isError: true });
+      return;
+    }
+    if (newPassword === currentPassword) {
+      setPasswordNotice({
+        message: 'New password must be different from your existing current password.',
+        isError: true,
+      });
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordNotice({ message: 'Passwords do not match.', isError: true });
+      setPasswordNotice({ message: 'New passwords do not match. Please verify confirmation.', isError: true });
       return;
     }
 
     setIsUpdatingPassword(true);
     try {
+      // 1. First verify current credentials against Supabase / local auth store
+      const verifyRes = await verifyCurrentPassword(currentPassword);
+      if (!verifyRes.success) {
+        setPasswordNotice({
+          message: verifyRes.error || 'Current password is incorrect. Please verify your existing password.',
+          isError: true,
+        });
+        setIsUpdatingPassword(false);
+        return;
+      }
+
+      // 2. Once verified, securely update to the new password
       const res = await updatePassword(newPassword, user?.email);
       if (res.success) {
-        setPasswordNotice({ message: 'Password updated successfully! Next login will require your new password.', isError: false });
+        setPasswordNotice({
+          message: 'Password successfully updated! Your active session is secure and next login requires the new password.',
+          isError: false,
+        });
+        setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
-        setTimeout(() => setShowPasswordSection(false), 2500);
+        setTimeout(() => setShowPasswordSection(false), 3000);
       } else {
         setPasswordNotice({ message: res.error || 'Failed to update password.', isError: true });
       }
@@ -162,6 +201,33 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
       setPasswordNotice({ message: err?.message || 'Password update failed.', isError: true });
     } finally {
       setIsUpdatingPassword(false);
+    }
+  };
+
+  const handleSendResetEmail = async () => {
+    if (!user?.email) return;
+    setIsSendingResetEmail(true);
+    setPasswordNotice(null);
+    try {
+      const res = await sendPasswordResetOtp(user.email);
+      if (res.success) {
+        setPasswordNotice({
+          message: `Password reset link / recovery code dispatched to ${user.email}. Check your inbox or spam folder to complete reset!`,
+          isError: false,
+        });
+      } else {
+        setPasswordNotice({
+          message: res.error || 'Failed to send recovery email.',
+          isError: true,
+        });
+      }
+    } catch (err: any) {
+      setPasswordNotice({
+        message: err?.message || 'Error triggering password reset link.',
+        isError: true,
+      });
+    } finally {
+      setIsSendingResetEmail(false);
     }
   };
 
@@ -565,41 +631,85 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
             <div className="flex items-center justify-between pb-4 border-b border-gray-800/80">
               <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-amber-400" />
-                  Account Security
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Account Security & Password
                 </h2>
-                <p className="text-xs text-gray-400 mt-0.5">Manage your password and active session safety</p>
+                <p className="text-xs text-gray-400 mt-0.5">Manage your password securely with identity verification</p>
               </div>
 
               <button
                 type="button"
-                onClick={() => setShowPasswordSection(!showPasswordSection)}
+                onClick={() => {
+                  setShowPasswordSection(!showPasswordSection);
+                  setPasswordNotice(null);
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
                 className="px-3.5 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 text-xs font-semibold border border-gray-800 transition-colors cursor-pointer"
               >
                 {showPasswordSection ? 'Cancel' : 'Change Password'}
               </button>
             </div>
 
-            {/* Password Update Form */}
+            {/* Password Update Form with Current Password Verification */}
             {showPasswordSection && (
               <form onSubmit={handleUpdatePassword} className="space-y-4 pt-2 animate-fadeIn">
                 {passwordNotice && (
                   <div
-                    className={`p-3.5 rounded-xl text-xs flex items-center gap-2 ${
+                    className={`p-3.5 rounded-xl text-xs flex items-center gap-2.5 ${
                       passwordNotice.isError
                         ? 'bg-rose-500/10 border border-rose-500/25 text-rose-300'
                         : 'bg-emerald-500/10 border border-emerald-500/25 text-emerald-400'
                     }`}
                   >
-                    {passwordNotice.isError ? <AlertCircle className="w-4 h-4 shrink-0" /> : <CheckCircle2 className="w-4 h-4 shrink-0" />}
+                    {passwordNotice.isError ? (
+                      <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                    )}
                     <span>{passwordNotice.message}</span>
                   </div>
                 )}
 
+                {/* Security Verification Banner */}
+                <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-200 text-xs flex items-start gap-2.5 leading-relaxed">
+                  <Lock className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                  <span>
+                    <strong>Security Verification:</strong> For your protection, updating your password requires entering your <strong>Current Password</strong>. If you forgot it, click the email recovery link below.
+                  </span>
+                </div>
+
+                {/* 1. Current Password (Required) */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
+                    Current Password <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      required
+                      placeholder="Enter your existing password"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-100 text-sm focus:border-amber-500 focus:outline-none transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 cursor-pointer"
+                    >
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. New Password & Confirm New Password */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                      New Password (Min 6 chars)
+                      New Password (Min 6 chars) <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -609,7 +719,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
                         placeholder="••••••••"
-                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-100 text-sm focus:border-blue-500 focus:outline-none"
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-100 text-sm focus:border-blue-500 focus:outline-none transition-colors"
                       />
                       <button
                         type="button"
@@ -623,30 +733,50 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                      Confirm New Password
+                      Confirm New Password <span className="text-rose-400">*</span>
                     </label>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
-                        type={showNewPassword ? 'text' : 'password'}
+                        type={showConfirmPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
                         placeholder="••••••••"
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-100 text-sm focus:border-blue-500 focus:outline-none"
+                        className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-100 text-sm focus:border-blue-500 focus:outline-none transition-colors"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                {/* Form Actions: Save or Request Reset Email */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                   <button
-                    type="submit"
-                    disabled={isUpdatingPassword}
-                    className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+                    type="button"
+                    onClick={handleSendResetEmail}
+                    disabled={isSendingResetEmail || !user?.email}
+                    className="text-xs text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5 self-start sm:self-auto"
                   >
-                    {isUpdatingPassword ? 'Updating Password...' : 'Save New Password'}
+                    <Mail className="w-3.5 h-3.5" />
+                    <span>{isSendingResetEmail ? 'Sending recovery link...' : 'Forgot current password? Send reset link to email'}</span>
                   </button>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button
+                      type="submit"
+                      disabled={isUpdatingPassword}
+                      className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {isUpdatingPassword ? 'Verifying & Saving...' : 'Verify & Save Password'}
+                    </button>
+                  </div>
                 </div>
               </form>
             )}
@@ -654,11 +784,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
             {/* Platform, Policies & Feedback */}
             <div className="pt-2 border-t border-gray-800/80">
               <h4 className="text-xs font-bold text-gray-200 mb-3">Platform, Policies & Feedback</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setIsAboutOpen(true)}
-                  className="p-3 rounded-2xl bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-left transition-all cursor-pointer group"
+                  className="p-3.5 rounded-2xl bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-left transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-2 text-indigo-400 font-semibold text-xs mb-1">
                     <Info className="w-3.5 h-3.5" />
@@ -672,7 +802,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 <button
                   type="button"
                   onClick={() => setIsPrivacyOpen(true)}
-                  className="p-3 rounded-2xl bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-left transition-all cursor-pointer group"
+                  className="p-3.5 rounded-2xl bg-gray-900/80 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 text-left transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs mb-1">
                     <ShieldCheck className="w-3.5 h-3.5" />
@@ -686,28 +816,14 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
                 <button
                   type="button"
                   onClick={() => setIsFeedbackOpen(true)}
-                  className="p-3 rounded-2xl bg-indigo-950/20 hover:bg-indigo-950/40 border border-indigo-500/20 hover:border-indigo-500/40 text-left transition-all cursor-pointer group"
+                  className="p-3.5 rounded-2xl bg-indigo-950/20 hover:bg-indigo-950/40 border border-indigo-500/20 hover:border-indigo-500/40 text-left transition-all cursor-pointer group"
                 >
                   <div className="flex items-center gap-2 text-indigo-300 font-semibold text-xs mb-1">
                     <MessageSquareHeart className="w-3.5 h-3.5" />
                     <span>Share Feedback</span>
                   </div>
                   <p className="text-[11px] text-gray-400 group-hover:text-gray-300">
-                    Report an issue or suggest a feature
-                  </p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsFeedbackInboxOpen(true)}
-                  className="p-3 rounded-2xl bg-amber-950/20 hover:bg-amber-950/40 border border-amber-500/25 hover:border-amber-500/40 text-left transition-all cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2 text-amber-300 font-semibold text-xs mb-1">
-                    <Inbox className="w-3.5 h-3.5" />
-                    <span>Feedback Inbox</span>
-                  </div>
-                  <p className="text-[11px] text-gray-400 group-hover:text-gray-300">
-                    View student reviews & ratings
+                    Direct to studysphere137@gmail.com
                   </p>
                 </button>
               </div>
@@ -798,12 +914,6 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
       />
-
-      {/* Feedback Inbox Modal (Admin / Creator) */}
-      <FeedbackInboxModal
-        isOpen={isFeedbackInboxOpen}
-        onClose={() => setIsFeedbackInboxOpen(false)}
-      />
-</div>
+    </div>
   );
 };

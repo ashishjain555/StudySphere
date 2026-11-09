@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Star, MessageSquareHeart, CheckCircle2, Send, Sparkles } from 'lucide-react';
+import { X, Star, MessageSquareHeart, CheckCircle2, Send, Sparkles, Mail } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { BrandLogo } from '../common/BrandLogo';
 import { useAuth } from '../../context/AuthContext';
@@ -82,7 +82,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
     // 1. Save locally for instant UI response
     DataStore.saveFeedback(feedbackItem);
 
-    // 2. Dispatch to backend API (which persists to server disk and forwards to admin's email)
+    // 2. Dispatch to backend API (persists to server disk and forwards to studysphere137@gmail.com)
     try {
       await fetch('/api/feedback', {
         method: 'POST',
@@ -96,6 +96,27 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       });
     } catch (err) {
       console.warn('Backend feedback dispatch notification:', err);
+    }
+
+    // 3. Optional client-side direct Web3Forms forward if configured
+    const clientWeb3Key = (import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY;
+    if (clientWeb3Key) {
+      try {
+        await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            access_key: clientWeb3Key,
+            subject: `[StudySphere Feedback] ${rating}★ Review (${category.toUpperCase()})`,
+            from_name: `StudySphere Student (${studentEmail})`,
+            email: studentEmail,
+            to_email: 'studysphere137@gmail.com',
+            message: `New Student Feedback:\n• Rating: ${rating}/5\n• Category: ${category}\n• Student: ${studentEmail}\n\n${message.trim()}`,
+          }),
+        });
+      } catch (err) {
+        // Silent fallback
+      }
     }
 
     // Trigger celebration confetti
@@ -137,7 +158,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
                   StudySphere
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Share suggestions, bug reports, or feature requests</p>
+              <p className="text-[11px] text-slate-400">
+                Routed directly to platform team at <span className="text-indigo-400 font-medium">studysphere137@gmail.com</span>
+              </p>
             </div>
           </div>
 
@@ -160,15 +183,26 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
             <div className="space-y-1.5">
               <h3 className="text-2xl font-bold text-white tracking-tight">Thank You! 🎉</h3>
               <p className="text-xs text-slate-300 max-w-sm mx-auto leading-relaxed">
-                Your feedback has been recorded. Your suggestions help shape future updates and build a better learning platform for every student.
+                Your feedback has been saved and routed to{' '}
+                <span className="text-indigo-400 font-semibold">studysphere137@gmail.com</span>. Your suggestions help us continually refine StudySphere!
               </p>
             </div>
 
-            <div className="pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+              <a
+                href={`mailto:studysphere137@gmail.com?subject=${encodeURIComponent(`[StudySphere Feedback] ${category.toUpperCase()} (${rating}★)`)}&body=${encodeURIComponent(`Rating: ${rating}/5 Stars\nCategory: ${category}\nStudent Email: ${email.trim() || user?.email || 'Student'}\n\nFeedback:\n${message.trim()}`)}`}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/30 font-semibold text-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Open in Email App</span>
+              </a>
+
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-lg shadow-indigo-600/30"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-lg shadow-indigo-600/30"
               >
                 Back to Workspace
               </button>

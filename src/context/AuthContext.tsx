@@ -13,6 +13,7 @@ interface AuthContextType {
   sendPasswordResetOtp: (email: string) => Promise<{ success: boolean; error?: string }>;
   verifyPasswordResetOtp: (email: string, token: string) => Promise<{ success: boolean; error?: string }>;
   updatePassword: (newPassword: string, email?: string) => Promise<{ success: boolean; error?: string }>;
+  verifyCurrentPassword: (currentPassword: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   switchRole: (role: UserRole) => void;
   resendVerification: (email: string) => Promise<{ success: boolean; error?: string }>;
@@ -541,6 +542,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
+   * Verifies current password against Supabase or offline credentials
+   * to prevent unauthorized password updates on unlocked sessions.
+   */
+  const verifyCurrentPassword = async (
+    currentPassword: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!currentPassword) {
+      return { success: false, error: 'Current password is required.' };
+    }
+    const cleanEmail = (user?.email || '').trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: 'User session not found. Please log in again.' };
+    }
+
+    if (isSupabaseConfigured) {
+      try {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: currentPassword,
+        });
+        if (error) {
+          return {
+            success: false,
+            error: 'Current password is incorrect. Please verify your current password.',
+          };
+        }
+        return { success: true };
+      } catch (err: any) {
+        return {
+          success: false,
+          error: err?.message || 'Current password verification failed.',
+        };
+      }
+    }
+
+    // Offline / Local verification
+    const emailKey = cleanEmail.replace(/[^a-z0-9]/g, '_');
+    const localCreds = JSON.parse(localStorage.getItem('studysphere_local_credentials') || '{}');
+    if (localCreds[emailKey] && localCreds[emailKey].password) {
+      if (localCreds[emailKey].password !== currentPassword) {
+        return { success: false, error: 'Current password is incorrect.' };
+      }
+    }
+    return { success: true };
+  };
+
+  /**
    * Clears authenticated session and workspace
    */
   const logout = async (): Promise<void> => {
@@ -648,6 +696,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendPasswordResetOtp,
         verifyPasswordResetOtp,
         updatePassword,
+        verifyCurrentPassword,
         logout,
         switchRole,
         resendVerification,
