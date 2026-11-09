@@ -187,44 +187,50 @@ ALTER TABLE public.ai_conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_messages ENABLE ROW LEVEL SECURITY;
 
 -- 1. Profiles
-DROP POLICY IF EXISTS "Users view own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Public read profiles" ON public.profiles;
-CREATE POLICY "Public read profiles" ON public.profiles FOR SELECT USING (true);
-
+DROP POLICY IF EXISTS "Users view own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users update own profile" ON public.profiles;
-CREATE POLICY "Users update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-
 DROP POLICY IF EXISTS "Users insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Allow all profiles" ON public.profiles;
+CREATE POLICY "Public read profiles" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "Users update own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
 CREATE POLICY "Users insert own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- 2. Subjects (Curriculum read open for all students, authenticated manage)
-DROP POLICY IF EXISTS "Users can manage own subjects" ON public.subjects;
 DROP POLICY IF EXISTS "Allow public read of subjects" ON public.subjects;
+DROP POLICY IF EXISTS "Allow authenticated manage subjects" ON public.subjects;
+DROP POLICY IF EXISTS "Users can manage own subjects" ON public.subjects;
 DROP POLICY IF EXISTS "Allow all subjects" ON public.subjects;
 CREATE POLICY "Allow public read of subjects" ON public.subjects FOR SELECT USING (true);
 CREATE POLICY "Allow authenticated manage subjects" ON public.subjects FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 3. Topics (Curriculum read open for all students, authenticated manage)
-DROP POLICY IF EXISTS "Users can manage own topics" ON public.topics;
 DROP POLICY IF EXISTS "Allow public read of topics" ON public.topics;
+DROP POLICY IF EXISTS "Allow authenticated manage topics" ON public.topics;
+DROP POLICY IF EXISTS "Users can manage own topics" ON public.topics;
 DROP POLICY IF EXISTS "Allow all topics" ON public.topics;
 CREATE POLICY "Allow public read of topics" ON public.topics FOR SELECT USING (true);
 CREATE POLICY "Allow authenticated manage topics" ON public.topics FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 4. Study Materials (Published materials readable by all, author manages own)
-DROP POLICY IF EXISTS "Users can manage own materials" ON public.study_materials;
+DROP POLICY IF EXISTS "Allow read published study materials" ON public.study_materials;
+DROP POLICY IF EXISTS "Allow author manage study materials" ON public.study_materials;
 DROP POLICY IF EXISTS "Allow public read of published materials" ON public.study_materials;
+DROP POLICY IF EXISTS "Users can manage own materials" ON public.study_materials;
 DROP POLICY IF EXISTS "Allow all study materials" ON public.study_materials;
 CREATE POLICY "Allow read published study materials" ON public.study_materials FOR SELECT USING (is_published = true OR auth.uid() = user_id OR auth.role() = 'authenticated');
 CREATE POLICY "Allow author manage study materials" ON public.study_materials FOR ALL TO authenticated USING (user_id IS NULL OR auth.uid() = user_id) WITH CHECK (user_id IS NULL OR auth.uid() = user_id);
 
 -- 5. Quiz Questions (Read access open for all students)
+DROP POLICY IF EXISTS "Allow read quiz questions" ON public.quiz_questions;
+DROP POLICY IF EXISTS "Allow authenticated manage quiz questions" ON public.quiz_questions;
 DROP POLICY IF EXISTS "Allow all quiz questions" ON public.quiz_questions;
 CREATE POLICY "Allow read quiz questions" ON public.quiz_questions FOR SELECT USING (true);
 CREATE POLICY "Allow authenticated manage quiz questions" ON public.quiz_questions FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- 6. Quiz Attempts (Strict User Data Isolation: users only access their own quiz results)
 DROP POLICY IF EXISTS "Users view own quiz attempts" ON public.quiz_attempts;
+DROP POLICY IF EXISTS "Users manage own quiz attempts" ON public.quiz_attempts;
 DROP POLICY IF EXISTS "Allow all quiz attempts" ON public.quiz_attempts;
 CREATE POLICY "Users manage own quiz attempts" ON public.quiz_attempts
   FOR ALL
@@ -253,6 +259,7 @@ CREATE POLICY "Users manage own weak topics" ON public.weak_topics
 -- 9. AI Conversations (Strict User Data Isolation: private student-AI chat sessions)
 DROP POLICY IF EXISTS "Users manage own AI conversations" ON public.ai_conversations;
 DROP POLICY IF EXISTS "Allow all AI conversations" ON public.ai_conversations;
+DROP POLICY IF EXISTS "Allow all ai conversations" ON public.ai_conversations;
 CREATE POLICY "Users manage own AI conversations" ON public.ai_conversations
   FOR ALL
   TO authenticated
@@ -262,6 +269,7 @@ CREATE POLICY "Users manage own AI conversations" ON public.ai_conversations
 -- 10. AI Messages (Strict User Data Isolation: messages scoped to user's conversation)
 DROP POLICY IF EXISTS "Users manage own AI messages" ON public.ai_messages;
 DROP POLICY IF EXISTS "Allow all AI messages" ON public.ai_messages;
+DROP POLICY IF EXISTS "Allow all ai messages" ON public.ai_messages;
 CREATE POLICY "Users manage own AI messages" ON public.ai_messages
   FOR ALL
   TO authenticated
