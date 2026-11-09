@@ -648,7 +648,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             redirectTo: `${window.location.origin}/app/dashboard`,
             queryParams: {
               access_type: 'offline',
-              prompt: 'select_account',
+              prompt: 'consent',
             },
           },
         });
