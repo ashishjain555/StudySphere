@@ -549,11 +549,13 @@ export const DataStore = {
 
   getSubjects(customUserId?: string): Subject[] {
     const uid = customUserId || getCurrentUserId();
-    const baseSubjects = getStored<Subject[]>(userKey(STORAGE_KEYS.SUBJECTS, uid), []);
+    const rawSubjects = getStored<Subject[]>(userKey(STORAGE_KEYS.SUBJECTS, uid), INITIAL_SUBJECTS);
+    const baseSubjects = Array.isArray(rawSubjects) && rawSubjects.length > 0 ? rawSubjects : INITIAL_SUBJECTS;
     const progressMap = getStored<Record<string, number>>(userKey('studysphere_user_progress', uid), {});
+    const safeProgress = (progressMap && typeof progressMap === 'object') ? progressMap : {};
     return baseSubjects.map((s) => ({
       ...s,
-      progressPercentage: progressMap[s.id] || 0,
+      progressPercentage: safeProgress[s.id] || 0,
     }));
   },
   addSubject(subject: Subject): void {
@@ -591,7 +593,8 @@ export const DataStore = {
 
   getTopics(subjectId?: string): Topic[] {
     const uid = getCurrentUserId();
-    const list = getStored<Topic[]>(userKey(STORAGE_KEYS.TOPICS, uid), []);
+    const rawList = getStored<Topic[]>(userKey(STORAGE_KEYS.TOPICS, uid), INITIAL_TOPICS);
+    const list = Array.isArray(rawList) && rawList.length > 0 ? rawList : INITIAL_TOPICS;
     const normalized = list.map((t) => ({
       ...t,
       unitName: formatChapterLabel(t.unitName, t.unitNumber),
@@ -786,7 +789,8 @@ export const DataStore = {
   },
 
   getTasks(): StudyPlanTask[] {
-    return getStored<StudyPlanTask[]>(userKey(STORAGE_KEYS.STUDY_PLANS), INITIAL_TASKS);
+    const raw = getStored<StudyPlanTask[]>(userKey(STORAGE_KEYS.STUDY_PLANS), INITIAL_TASKS);
+    return Array.isArray(raw) ? raw : INITIAL_TASKS;
   },
   saveTask(task: StudyPlanTask): void {
     const tasks = this.getTasks();
@@ -808,7 +812,8 @@ export const DataStore = {
   },
 
   getWeakTopics(): WeakTopic[] {
-    return getStored<WeakTopic[]>(userKey(STORAGE_KEYS.WEAK_TOPICS), INITIAL_WEAK_TOPICS);
+    const raw = getStored<WeakTopic[]>(userKey(STORAGE_KEYS.WEAK_TOPICS), INITIAL_WEAK_TOPICS);
+    return Array.isArray(raw) ? raw : INITIAL_WEAK_TOPICS;
   },
   recordWeakTopic(subjectId: string, subjectName: string, topicId: string, topicName: string, scorePct: number): void {
     const list = this.getWeakTopics();
@@ -847,7 +852,8 @@ export const DataStore = {
   },
 
   getQuizAttempts(): QuizAttempt[] {
-    return getStored<QuizAttempt[]>(userKey(STORAGE_KEYS.QUIZ_ATTEMPTS), INITIAL_QUIZ_ATTEMPTS);
+    const raw = getStored<QuizAttempt[]>(userKey(STORAGE_KEYS.QUIZ_ATTEMPTS), INITIAL_QUIZ_ATTEMPTS);
+    return Array.isArray(raw) ? raw : INITIAL_QUIZ_ATTEMPTS;
   },
   recordQuizAttempt(attempt: QuizAttempt): void {
     const list = this.getQuizAttempts();
@@ -1005,24 +1011,24 @@ export const DataStore = {
   },
 
   getStatsSummary() {
-    const attempts = this.getQuizAttempts();
-    const tasks = this.getTasks();
-    const subjects = this.getSubjects();
+    const attempts = this.getQuizAttempts() || [];
+    const tasks = this.getTasks() || [];
+    const subjects = this.getSubjects() || [];
 
-    const taskHours = tasks.filter((t) => t.isCompleted).reduce((acc, t) => acc + (t.durationMins || 30) / 60, 0);
-    const quizHours = attempts.reduce((acc, a) => acc + (a.timeTakenSeconds > 0 ? a.timeTakenSeconds / 3600 : 0.25), 0);
+    const taskHours = tasks.filter((t) => t && t.isCompleted).reduce((acc, t) => acc + ((t.durationMins || t.duration || 30) / 60), 0);
+    const quizHours = attempts.reduce((acc, a) => acc + (a && a.timeTakenSeconds > 0 ? a.timeTakenSeconds / 3600 : 0.25), 0);
     const totalHours = Math.round((taskHours + quizHours) * 10) / 10;
 
-    const activeStreak = attempts.length > 0 || tasks.some((t) => t.isCompleted) ? Math.min(14, Math.max(1, attempts.length)) : 0;
+    const activeStreak = attempts.length > 0 || tasks.some((t) => t && t.isCompleted) ? Math.min(14, Math.max(1, attempts.length)) : 0;
     const longestStreak = Math.max(activeStreak, attempts.length > 0 ? 14 : 0);
 
     const quizAccuracyAvg = attempts.length > 0
-      ? Math.round(attempts.reduce((acc, a) => acc + (a.scorePercentage || (a as any).percentage || 0), 0) / attempts.length)
+      ? Math.round(attempts.reduce((acc, a) => acc + (a ? (a.scorePercentage || (a as any).percentage || 0) : 0), 0) / attempts.length)
       : 0;
 
-    const completedTasksCount = tasks.filter((t) => t.isCompleted).length;
-    const masteredTopicsCount = new Set(attempts.filter((a) => (a.scorePercentage || (a as any).percentage || 0) >= 60).map((a) => a.topicTitle)).size;
-    const totalTopicsCount = subjects.reduce((acc, s) => acc + (s.topicCount || 10), 0);
+    const completedTasksCount = tasks.filter((t) => t && t.isCompleted).length;
+    const masteredTopicsCount = new Set(attempts.filter((a) => a && (a.scorePercentage || (a as any).percentage || 0) >= 60).map((a) => a.topicTitle)).size;
+    const totalTopicsCount = subjects.reduce((acc, s) => acc + ((s && s.topicCount) || 10), 0);
     const topicsCompleted = Math.min(totalTopicsCount, completedTasksCount + masteredTopicsCount);
 
     return {
