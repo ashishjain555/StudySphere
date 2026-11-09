@@ -25,23 +25,40 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
  * Maps Supabase Auth User object to application UserProfile
- * without inventing fake data.
+ * while preserving any permanent locally configured avatar and personal information.
  */
 function mapAuthUserToProfile(authUser: any): UserProfile {
   const metadata = authUser.user_metadata || {};
-  const email = authUser.email || '';
+  const email = (authUser.email || '').trim().toLowerCase();
+  const emailKey = email.replace(/[^a-z0-9]/g, '_');
+
+  // Check if we have permanent locally saved profile data for this email
+  let savedProfile: Partial<UserProfile> = {};
+  try {
+    const rawSaved = localStorage.getItem(`studysphere_profile_${emailKey}`);
+    if (rawSaved) {
+      savedProfile = JSON.parse(rawSaved);
+    } else {
+      const reg = JSON.parse(localStorage.getItem('studysphere_registered_users') || '{}');
+      if (reg[emailKey]) savedProfile = reg[emailKey];
+      else if (reg[authUser.id]) savedProfile = reg[authUser.id];
+    }
+  } catch {}
+
   const fullName =
+    savedProfile.fullName ||
     metadata.full_name ||
     metadata.name ||
     (metadata.given_name ? `${metadata.given_name} ${metadata.family_name || ''}`.trim() : '') ||
     (email ? email.split('@')[0] : 'Student');
 
   const avatarUrl =
+    savedProfile.avatarUrl ||
     metadata.avatar_url ||
     metadata.picture ||
     `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName || email || 'User')}`;
 
-  const role: UserRole = metadata.role === 'teacher' ? 'teacher' : 'student';
+  const role: UserRole = (savedProfile.role || (metadata.role === 'teacher' ? 'teacher' : 'student'));
 
   return {
     id: authUser.id,
@@ -49,7 +66,11 @@ function mapAuthUserToProfile(authUser: any): UserProfile {
     fullName,
     role,
     avatarUrl,
-    createdAt: authUser.created_at || new Date().toISOString(),
+    institution: savedProfile.institution || metadata.institution || '',
+    semester: savedProfile.semester || metadata.semester || '',
+    major: savedProfile.major || metadata.major || '',
+    targetGoal: savedProfile.targetGoal || metadata.target_goal || '',
+    createdAt: savedProfile.createdAt || authUser.created_at || new Date().toISOString(),
   };
 }
 

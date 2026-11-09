@@ -445,7 +445,19 @@ export const DataStore = {
   getUser(): UserProfile | null {
     try {
       const item = localStorage.getItem(STORAGE_KEYS.USER);
-      return item ? JSON.parse(item) : null;
+      if (!item) return null;
+      const u = JSON.parse(item);
+      if (u && u.email) {
+        const emailKey = u.email.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+        const emailProfile = localStorage.getItem(`studysphere_profile_${emailKey}`);
+        if (emailProfile) {
+          try {
+            const ep = JSON.parse(emailProfile);
+            return { ...u, ...ep };
+          } catch {}
+        }
+      }
+      return u;
     } catch (e) {
       return null;
     }
@@ -455,6 +467,16 @@ export const DataStore = {
   },
   setUser(user: UserProfile): void {
     setStored(STORAGE_KEYS.USER, user);
+    if (user && user.email) {
+      const emailKey = user.email.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+      try {
+        localStorage.setItem(`studysphere_profile_${emailKey}`, JSON.stringify(user));
+        const registered = getStored<Record<string, UserProfile>>('studysphere_registered_users', {});
+        registered[emailKey] = user;
+        registered[user.id] = user;
+        setStored('studysphere_registered_users', registered);
+      } catch {}
+    }
   },
   clearActiveSession(): void {
     localStorage.removeItem(STORAGE_KEYS.USER);

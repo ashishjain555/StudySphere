@@ -111,6 +111,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
   const completedTasks = tasks.filter((t) => t.isCompleted);
   const calculatedWeeklyHours = weeklyHoursData.reduce((acc, curr) => acc + curr.hours, 0);
   const displayHours = (calculatedWeeklyHours > 0 ? calculatedWeeklyHours.toFixed(1) : stats.weeklyStudyHours.toFixed(1));
+  const totalWeeklyHours = displayHours;
   const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 100;
 
   const handleToggleTask = (taskId: string) => {
