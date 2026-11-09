@@ -120,19 +120,20 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       }
     };
 
-    if (window.google?.accounts?.id) {
-      initGoogleGsi();
-    } else {
-      checkInterval = setInterval(async () => {
-        attempts++;
-        if (window.google?.accounts?.id) {
-          const success = await initGoogleGsi();
-          if (success && checkInterval) clearInterval(checkInterval);
-        } else if (attempts > 30) {
-          if (checkInterval) clearInterval(checkInterval);
-        }
-      }, 100);
-    }
+    // Try immediately and set up retry loop if script is still downloading
+    initGoogleGsi().then((success) => {
+      if (!success) {
+        checkInterval = setInterval(async () => {
+          attempts++;
+          const done = await initGoogleGsi();
+          if (done && checkInterval) {
+            clearInterval(checkInterval);
+          } else if (attempts > 30) {
+            if (checkInterval) clearInterval(checkInterval);
+          }
+        }, 100);
+      }
+    });
 
     return () => {
       if (checkInterval) clearInterval(checkInterval);
@@ -206,15 +207,18 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
       </button>
 
       {/* 2. Transparent Official Google Button Overlay:
+             Always mounted in the DOM so googleBtnContainerRef.current is NEVER null!
              Captures user clicks seamlessly, opening the separate Google Auth popup panel 
              with StudySphere AI branding (zero supabase.co domain) */}
-      {isGsiLoaded && !isLoading && (
-        <div
-          ref={googleBtnContainerRef}
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full opacity-[0.001] cursor-pointer overflow-hidden z-20 flex items-center justify-center [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:cursor-pointer [&_iframe]:scale-150"
-        />
-      )}
+      <div
+        ref={googleBtnContainerRef}
+        aria-hidden="true"
+        className={`absolute inset-0 w-full h-full cursor-pointer overflow-hidden z-20 flex items-center justify-center [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:cursor-pointer [&_iframe]:scale-150 ${
+          isGsiLoaded && !isLoading
+            ? 'opacity-[0.001] pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+        }`}
+      />
     </div>
   );
 };
