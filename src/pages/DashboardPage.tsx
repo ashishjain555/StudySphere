@@ -106,22 +106,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
     });
   }, [tasks, quizAttempts]);
 
-  // Gamification Metrics
+  // Academic Progress Metrics
   const completedTasks = tasks.filter((t) => t.isCompleted);
   const totalWeeklyHours = weeklyHoursData.reduce((acc, curr) => acc + curr.hours, 0).toFixed(1);
   const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 100;
-
-  // XP & Scholar Level
-  const scholarXp = useMemo(() => {
-    return (completedTasks.length * 35) + (quizAttempts.length * 50) + (materials.length * 20);
-  }, [completedTasks.length, quizAttempts.length, materials.length]);
-
-  const scholarLevel = useMemo(() => {
-    if (scholarXp >= 600) return { level: 4, title: 'Master Scholar', next: 1000, progress: 85 };
-    if (scholarXp >= 300) return { level: 3, title: 'Knowledge Seeker', next: 600, progress: Math.min(100, Math.round(((scholarXp - 300) / 300) * 100)) };
-    if (scholarXp >= 100) return { level: 2, title: 'Active Learner', next: 300, progress: Math.min(100, Math.round(((scholarXp - 100) / 200) * 100)) };
-    return { level: 1, title: 'Novice Scholar', next: 100, progress: Math.min(100, Math.max(15, scholarXp)) };
-  }, [scholarXp]);
 
   const handleToggleTask = (taskId: string) => {
     const updated = tasks.map((t) => {
@@ -182,9 +170,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
                   <GraduationCap className="w-3.5 h-3.5 text-blue-400" />
                   Study Workspace Active
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-300 text-xs font-semibold border border-amber-500/25">
-                  <Award className="w-3.5 h-3.5 text-amber-400" />
-                  Level {scholarLevel.level} • {scholarLevel.title}
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-300 text-xs font-semibold border border-emerald-500/25">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  {tasks.length > 0 ? `${completedTasks.length}/${tasks.length} Tasks Done` : 'Semester Active'}
                 </div>
               </div>
 
@@ -245,13 +233,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
                 <div className="text-[11px] text-slate-400 font-medium">This Week</div>
               </div>
 
-              {/* Scholar XP */}
+              {/* Quizzes Taken */}
               <div className="flex-1 sm:flex-initial px-5 py-3.5 rounded-2xl glass-card border border-slate-800 bg-slate-900/70 text-center min-w-[105px]">
                 <div className="flex items-center justify-center gap-1.5 text-emerald-400 font-bold text-lg">
-                  <Zap className="w-5 h-5 fill-emerald-400" />
-                  {scholarXp}
+                  <Target className="w-5 h-5 text-emerald-400" />
+                  {quizAttempts.length}
                 </div>
-                <div className="text-[11px] text-slate-400 font-medium">Scholar XP</div>
+                <div className="text-[11px] text-slate-400 font-medium">Quizzes Taken</div>
               </div>
             </div>
           </div>
