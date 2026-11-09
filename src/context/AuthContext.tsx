@@ -18,6 +18,7 @@ interface AuthContextType {
   switchRole: (role: UserRole) => void;
   resendVerification: (email: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogleIdToken: (idToken: string) => Promise<{ success: boolean; error?: string }>;
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -647,9 +648,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             redirectTo: `${window.location.origin}/app/dashboard`,
             queryParams: {
               access_type: 'offline',
-              prompt: 'consent',
+              prompt: 'select_account',
             },
           },
+        });
+        if (error) {
+          return { success: false, error: error.message };
+        }
+        return { success: true };
+      } catch (err: any) {
+        return { success: false, error: err?.message || 'Google sign-in failed.' };
+      }
+    }
+    return { success: false, error: 'Supabase authentication service is not configured.' };
+  };
+
+  /**
+   * Native Google Identity Services (ID Token) authentication without supabase.co redirect
+   */
+  const loginWithGoogleIdToken = async (idToken: string): Promise<{ success: boolean; error?: string }> => {
+    if (isSupabaseConfigured) {
+      try {
+        const { error } = await supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: idToken,
         });
         if (error) {
           return { success: false, error: error.message };
@@ -722,6 +744,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchRole,
         resendVerification,
         loginWithGoogle,
+        loginWithGoogleIdToken,
         updateUserProfile,
       }}
     >
