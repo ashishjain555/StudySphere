@@ -209,7 +209,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onSuccess }) =
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting || isGoogleLoading}
+            disabled={isSubmitting}
             className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs border border-blue-400/30 flex items-center justify-center gap-2 transition-all mt-2 disabled:opacity-50 cursor-pointer shadow-lg shadow-blue-600/10"
           >
             {isSubmitting ? (
