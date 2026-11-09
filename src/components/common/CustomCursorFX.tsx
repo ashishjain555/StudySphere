@@ -98,11 +98,11 @@ export const CustomCursorFX: React.FC = () => {
       setSparkles((prev) => [...prev.slice(-10), ...newSparkles]);
 
       setTimeout(() => {
-        setRipples((prev) => prev.filter((r) => r.id !== rippleId));
+        setRipples((prev) => (Array.isArray(prev) ? prev : []).filter((r) => r && r.id !== rippleId));
       }, 550);
 
       setTimeout(() => {
-        setSparkles((prev) => prev.filter((s) => !newSparkles.some((ns) => ns.id === s.id)));
+        setSparkles((prev) => (Array.isArray(prev) ? prev : []).filter((s) => s && !newSparkles.some((ns) => ns.id === s.id)));
       }, 450);
     };
 

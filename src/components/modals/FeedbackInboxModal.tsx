@@ -74,13 +74,15 @@ export const FeedbackInboxModal: React.FC<FeedbackInboxModalProps> = ({
 
   if (!isOpen) return null;
 
-  const totalCount = feedbacks.length;
+  const safeFeedbacks = Array.isArray(feedbacks) ? feedbacks : [];
+  const totalCount = safeFeedbacks.length;
   const avgRating =
     totalCount > 0
-      ? (feedbacks.reduce((sum, f) => sum + (Number(f.rating) || 5), 0) / totalCount).toFixed(1)
+      ? (safeFeedbacks.reduce((sum, f) => sum + (Number(f.rating) || 5), 0) / totalCount).toFixed(1)
       : '5.0';
 
-  const filtered = feedbacks.filter((f) => {
+  const filtered = safeFeedbacks.filter((f) => {
+    if (!f) return false;
     if (filterCategory !== 'all' && f.category !== filterCategory) return false;
     if (filterRating !== 'all' && f.rating !== filterRating) return false;
     return true;

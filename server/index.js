@@ -16,15 +16,21 @@ const distPath = path.resolve(__dirname, '../dist');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust reverse proxy (e.g. Render / Cloudflare) to ensure accurate client IP detection
+app.set('trust proxy', 1);
+
 // Security Hardening: Disable Express signature header
 app.disable('x-powered-by');
 
-// Security Hardening: HTTP Response Headers
+// Security Hardening: HTTP Response Headers (HSTS, nosniff, anti-clickjacking, strict referrer, permissions)
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  res.removeHeader('X-Powered-By');
   next();
 });
 
@@ -36,6 +42,7 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:4173',
+  'https://studysphere-ai-rktl.onrender.com',
   ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : []),
   ...(process.env.APP_URL ? [process.env.APP_URL.trim()] : [])
 ];
@@ -48,26 +55,60 @@ app.use(cors({
     // Explicitly allowed origins
     if (allowedOrigins.includes(origin)) return callback(null, true);
 
-    // Automatically allow deployments on Render, Vercel, Railway, or local addresses
+    // Safely allow specific localhost/127.0.0.1 ports
     try {
       const url = new URL(origin);
-      if (
-        url.hostname === 'localhost' ||
-        url.hostname === '127.0.0.1' ||
-        url.hostname.endsWith('.onrender.com') ||
-        url.hostname.endsWith('.vercel.app') ||
-        url.hostname.endsWith('.railway.app')
-      ) {
+      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+        return callback(null, true);
+      }
+      if (url.hostname === 'studysphere-ai-rktl.onrender.com') {
         return callback(null, true);
       }
     } catch (e) {}
 
-    return callback(new Error('Cross-Origin Request Blocked by StudySphere CORS Policy.'));
+    // Gracefully reject cross-origin request without throwing an unhandled 500 error
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Admin-Key']
 }));
+
+// In-Memory Rate Limiter for Feedback to prevent spam and flooding
+const feedbackRateLimitMap = new Map();
+const FEEDBACK_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_FEEDBACK_PER_WINDOW = 12;
+
+function feedbackRateLimiter(req, res, next) {
+  const clientIp = (req.headers['x-forwarded-for'] || req.ip || req.socket.remoteAddress || 'unknown')
+    .toString().split(',')[0].trim();
+  const now = Date.now();
+
+  let record = feedbackRateLimitMap.get(clientIp);
+  if (!record || now - record.startTime > FEEDBACK_WINDOW_MS) {
+    record = { count: 1, startTime: now };
+    feedbackRateLimitMap.set(clientIp, record);
+  } else {
+    record.count++;
+  }
+
+  // Periodic cleanup
+  if (feedbackRateLimitMap.size > 2000) {
+    for (const [ip, entry] of feedbackRateLimitMap.entries()) {
+      if (now - entry.startTime > FEEDBACK_WINDOW_MS) {
+        feedbackRateLimitMap.delete(ip);
+      }
+    }
+  }
+
+  if (record.count > MAX_FEEDBACK_PER_WINDOW) {
+    return res.status(429).json({
+      error: 'Too many feedback submissions from this network. Please wait a few minutes before submitting again.'
+    });
+  }
+
+  next();
+}
 
 // In-Memory Rate Limiter to prevent Gemini API quota exhaustion & flood attacks
 const aiRateLimitMap = new Map();
@@ -107,10 +148,62 @@ function aiRateLimiter(req, res, next) {
 app.use('/api/ai', aiRateLimiter);
 app.use(express.json({ limit: '60mb' }));
 
+// Block common vulnerability scanners / malicious probes with immediate 404
+const SUSPICIOUS_PROBE_PATTERNS = [
+  /\.php$/i,
+  /\.aspx?$/i,
+  /\.jsp$/i,
+  /\.cgi$/i,
+  /\.env(?:\..*)?$/i,
+  /\.git(?:\/|$)/i,
+  /\.bak$/i,
+  /\.sql$/i,
+  /\.ya?ml$/i,
+  /\.conf$/i,
+  /\.ini$/i,
+  /^\/wp-(?:admin|content|includes|login|json)/i,
+  /^\/xmlrpc\.php/i,
+  /^\/(?:phpmyadmin|pma|adminer|dbadmin)/i,
+  /^\/cgi-bin/i,
+  /^\/actuator/i,
+  /^\/(?:console|server-status|telescope)/i,
+];
+
+app.use((req, res, next) => {
+  const p = req.path.toLowerCase();
+  for (const pattern of SUSPICIOUS_PROBE_PATTERNS) {
+    if (pattern.test(p)) {
+      return res.status(404).type('text/plain').send('404 Not Found');
+    }
+  }
+  next();
+});
+
 // Serve static frontend assets if built
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    index: false,
+    maxAge: '1d',
+    setHeaders: (res, filePath) => {
+      if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else {
+        res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      }
+    }
+  }));
 }
+
+// If a request has a file extension (e.g. .js, .css, .png, .jpg, .svg, .json, .map, .ico, .txt, .pdf)
+// and reached here, it means the file does NOT exist on the server.
+// Non-existent static files MUST return 404, never 200 index.html!
+app.use((req, res, next) => {
+  const ext = path.extname(req.path);
+  if (ext && ext !== '.html') {
+    return res.status(404).type('text/plain').send('404 Not Found: Static resource does not exist.');
+  }
+  next();
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -312,15 +405,28 @@ function generateDynamicPdfFallback(extractedContent, filename) {
 // Server-side PDF Text Extraction Engine (zero browser CDN worker dependencies)
 async function extractTextFromPdfBuffer(buffer) {
   try {
+    if (!buffer || buffer.length < 5) return '';
+    // Verify PDF magic bytes '%PDF-'
+    if (buffer.slice(0, 5).toString('ascii') !== '%PDF-') {
+      console.warn('PDF header validation failed: Missing %PDF- magic bytes.');
+      return '';
+    }
+
     const uint8Array = new Uint8Array(buffer);
-    const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+    const pdf = await pdfjsLib.getDocument({
+      data: uint8Array,
+      disableFontFace: true,
+      stopAtErrors: true,
+      isEvalSupported: false,
+    }).promise;
+
     let fullText = '';
     const maxPages = Math.min(pdf.numPages, 100);
 
     for (let i = 1; i <= maxPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item) => item.str).join(' ');
+      const pageText = textContent.items.map((item) => (item && item.str ? item.str : '')).join(' ');
       if (pageText.trim()) {
         fullText += `\n--- Page ${i} ---\n` + pageText.trim();
       }
@@ -328,7 +434,7 @@ async function extractTextFromPdfBuffer(buffer) {
 
     return fullText.trim();
   } catch (err) {
-    console.error('Server PDF extraction error:', err);
+    console.error('Server PDF extraction error:', err?.message || err);
     return '';
   }
 }
@@ -453,17 +559,23 @@ function sanitizeExplanationFormat(text) {
 app.post('/api/ai/analyze-pdf', async (req, res) => {
   try {
     const { pdfText, pdfBase64, filename = 'Document.pdf' } = req.body;
+    const cleanFilename = String(filename || 'Document.pdf')
+      .replace(/[^\w\s.-]/gi, '_')
+      .substring(0, 80);
     let extractedContent = (pdfText || req.body.extractedContent || '').trim();
 
     // If PDF base64 is provided and text is short or missing, extract server-side
     if (pdfBase64 && extractedContent.length < 50) {
       try {
         const cleanBase64 = pdfBase64.replace(/^data:application\/pdf;base64,/, '');
+        if (cleanBase64.length > 35 * 1024 * 1024) {
+          return res.status(400).json({ error: 'PDF file exceeds maximum allowed size (25MB).' });
+        }
         const buffer = Buffer.from(cleanBase64, 'base64');
         const serverExtracted = await extractTextFromPdfBuffer(buffer);
         if (serverExtracted) {
           extractedContent = serverExtracted;
-          console.log(`[PDF Server Extraction] Extracted ${extractedContent.length} characters from ${filename}`);
+          console.log(`[PDF Server Extraction] Extracted ${extractedContent.length} characters from ${cleanFilename}`);
         }
       } catch (err) {
         console.warn('Could not extract PDF from base64:', err.message);
@@ -476,7 +588,7 @@ app.post('/api/ai/analyze-pdf', async (req, res) => {
     }
 
     const textPrompt = `You are a helpful, expert AI tutor and university professor who explains topics with natural academic elegance and clarity, like ChatGPT at its best.
-Conduct a thorough, deep, and complete study analysis of the uploaded document titled "${filename}".
+Conduct a thorough, deep, and complete study analysis of the uploaded document titled "${cleanFilename}".
 
 DOCUMENT CONTENT:
 """
@@ -1081,31 +1193,42 @@ function persistFeedbackRecord(record) {
   }
 }
 
-app.post('/api/feedback', async (req, res) => {
+app.post('/api/feedback', feedbackRateLimiter, async (req, res) => {
   try {
     const { rating = 5, category = 'general', message = '', email = '' } = req.body || {};
 
-    if (!message || message.trim().length < 3) {
-      return res.status(400).json({ error: 'Feedback message is required (min 3 characters).' });
+    const cleanRating = Math.min(5, Math.max(1, parseInt(rating, 10) || 5));
+    const validCategories = ['general', 'feature', 'bug', 'ui', 'content'];
+    const cleanCategory = validCategories.includes(String(category).toLowerCase())
+      ? String(category).toLowerCase()
+      : 'general';
+
+    const cleanMessage = String(message || '').trim().substring(0, 3000);
+    if (cleanMessage.length < 3) {
+      return res.status(400).json({ error: 'Feedback message is required (min 3 characters, max 3000).' });
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const rawEmail = String(email || '').trim().toLowerCase().substring(0, 150);
+    const cleanEmail = emailRegex.test(rawEmail) ? rawEmail : 'anonymous@student.com';
 
     const feedbackRecord = {
       id: `fb_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      rating: Number(rating) || 5,
-      category: String(category).trim(),
-      message: String(message).trim(),
-      email: String(email).trim() || 'anonymous@student.com',
+      rating: cleanRating,
+      category: cleanCategory,
+      message: cleanMessage,
+      email: cleanEmail,
       receivedAt: new Date().toISOString(),
-      userAgent: req.headers['user-agent'] || '',
-      ip: req.ip || req.connection?.remoteAddress || '',
+      userAgent: (req.headers['user-agent'] || '').substring(0, 200),
+      ip: (req.headers['x-forwarded-for'] || req.ip || req.connection?.remoteAddress || '127.0.0.1').toString().split(',')[0].trim(),
     };
 
-    // 1. Always save to local server file system so no feedback is ever lost
+    // 1. Save to local server file system
     persistFeedbackRecord(feedbackRecord);
     console.log(`📩 [StudySphere Feedback] [${feedbackRecord.rating}★] [${feedbackRecord.category}] from: ${feedbackRecord.email}`);
 
     // 2. Dispatch email to StudySphere owner/admin if email provider configured
-    const web3formsKey = process.env.WEB3FORMS_ACCESS_KEY || process.env.FEEDBACK_ACCESS_KEY || '9a5e9424-3cb4-4670-9d7a-8fde289697fc';
+    const web3formsKey = process.env.WEB3FORMS_ACCESS_KEY || process.env.FEEDBACK_ACCESS_KEY;
     const resendKey = process.env.RESEND_API_KEY;
     const formspreeUrl = process.env.FORMSPREE_ENDPOINT;
     const adminEmail = process.env.ADMIN_EMAIL || process.env.FEEDBACK_RECEIVER_EMAIL || 'studysphere137@gmail.com';
@@ -1113,7 +1236,7 @@ app.post('/api/feedback', async (req, res) => {
     let emailDelivered = false;
     let providerUsed = 'none';
 
-    // A. Web3Forms (Zero-backend setup, forwards directly to owner's inbox)
+    // A. Web3Forms (if configured via environment variable)
     if (web3formsKey) {
       try {
         const w3Res = await fetch('https://api.web3forms.com/submit', {
@@ -1124,14 +1247,14 @@ app.post('/api/feedback', async (req, res) => {
             subject: `[StudySphere Feedback] ${feedbackRecord.rating}★ Review (${feedbackRecord.category.toUpperCase()})`,
             from_name: `StudySphere Student (${feedbackRecord.email})`,
             email: feedbackRecord.email,
-            to_email: 'studysphere137@gmail.com',
+            to_email: adminEmail,
             message: `🌟 New Student Feedback on StudySphere!\n\n` +
               `• Rating: ${feedbackRecord.rating} / 5 Stars\n` +
               `• Category: ${feedbackRecord.category}\n` +
               `• Student Email: ${feedbackRecord.email}\n` +
               `• Submitted: ${feedbackRecord.receivedAt}\n\n` +
               `Student Message:\n"${feedbackRecord.message}"\n\n` +
-              `— Sent automatically via StudySphere Feedback Engine to studysphere137@gmail.com`,
+              `— Sent automatically via StudySphere Feedback Engine to ${adminEmail}`,
           }),
         });
         const w3Data = await w3Res.json();
@@ -1219,14 +1342,33 @@ app.post('/api/feedback', async (req, res) => {
   }
 });
 
-// Endpoint to retrieve all received feedbacks (for admin inspection)
+// Endpoint to retrieve all received feedbacks (Protected by Admin Authentication)
 app.get('/api/feedback', (req, res) => {
   try {
+    const adminKey = process.env.ADMIN_ACCESS_KEY || process.env.ADMIN_KEY;
+    const providedKey = req.headers['x-admin-key'] || (req.headers.authorization ? req.headers.authorization.replace(/^Bearer\s+/i, '') : '');
+
+    if (!adminKey || !providedKey || providedKey !== adminKey) {
+      return res.status(401).json({
+        error: 'Unauthorized: Admin authentication required to access feedback inbox records.',
+      });
+    }
+
     const list = readStoredFeedbacks();
+    // Sanitize records before returning
+    const sanitizedList = list.map((item) => ({
+      id: item.id,
+      rating: item.rating,
+      category: item.category,
+      message: item.message,
+      email: item.email,
+      receivedAt: item.receivedAt,
+    }));
+
     return res.json({
       success: true,
-      totalCount: list.length,
-      feedbacks: list,
+      totalCount: sanitizedList.length,
+      feedbacks: sanitizedList,
     });
   } catch (error) {
     return res.status(500).json({ error: 'Failed to retrieve feedback list.' });
@@ -1326,37 +1468,82 @@ function generateFallbackQuestions(subject, topic, difficulty, count) {
   return samplePool.slice(0, Math.min(count, samplePool.length));
 }
 
-// SPA Fallback: All client-side routes serve index.html from dist
+// Catch-all for undefined API routes
+app.use('/api', (req, res) => {
+  return res.status(404).json({
+    error: 'API endpoint not found',
+    path: req.originalUrl || req.path,
+    status: 404,
+  });
+});
+
+// List of legitimate SPA client routes (exact or prefix)
+const KNOWN_SPA_ROUTES = new Set([
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/app',
+]);
+
+function isKnownSpaRoute(rawPath) {
+  const p = (rawPath || '/').replace(/\/+$/, '') || '/';
+  if (KNOWN_SPA_ROUTES.has(p)) return true;
+  if (p === '/app' || p.startsWith('/app/')) return true;
+  return false;
+}
+
+function renderNotFoundPage(res, requestedPath) {
+  const sanitized = String(requestedPath || '')
+    .replace(/[<>"'&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '&': '&amp;' }[c]))
+    .substring(0, 100);
+
+  return res.status(404).type('text/html').send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>404 — Page Not Found | StudySphere AI</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #07090e; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 24px; box-sizing: border-box; }
+    .card { background: #0f172a; padding: 44px 32px; border-radius: 24px; border: 1px solid #1e293b; text-align: center; max-width: 480px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+    .icon { width: 56px; height: 56px; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 18px; color: #818cf8; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 20px; }
+    h1 { font-size: 22px; font-weight: 700; margin: 0 0 10px; color: #ffffff; }
+    p { color: #94a3b8; font-size: 13.5px; line-height: 1.6; margin: 0 0 24px; }
+    code { background: #1e293b; color: #38bdf8; padding: 2px 6px; border-radius: 6px; font-size: 12px; }
+    .btn { display: inline-block; padding: 12px 24px; background: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 13px; transition: background 0.15s ease; }
+    .btn:hover { background: #4338ca; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🧭</div>
+    <h1>404 — Page Not Found</h1>
+    <p>The requested route <code>${sanitized}</code> was not found on StudySphere AI.</p>
+    <a class="btn" href="/">Return to StudySphere</a>
+  </div>
+</body>
+</html>`);
+}
+
+// SPA Routing & Strict 404 Fallback
 app.use((req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ error: 'API route not found' });
+  // If it's a known SPA route, serve the React app index.html with 200 OK
+  if (isKnownSpaRoute(req.path)) {
+    const indexPath = path.join(distPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+      return res.status(200).sendFile(indexPath);
+    }
   }
-  const indexPath = path.join(distPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
+
+  // Genuinely non-existent route: Return real HTTP 404
+  if (req.accepts('json') && !req.accepts('html')) {
+    return res.status(404).json({ error: 'Resource not found', path: req.path, status: 404 });
   }
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>StudySphere</title>
-        <style>
-          body { font-family: system-ui, sans-serif; background: #07090e; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-          .card { background: #0f172a; padding: 40px; border-radius: 20px; border: 1px solid #1e293b; text-align: center; max-width: 500px; }
-          h1 { color: #a855f7; margin-bottom: 8px; }
-          p { color: #94a3b8; font-size: 14px; line-height: 1.6; }
-          .btn { display: inline-block; margin-top: 20px; padding: 12px 24px; background: #6366f1; color: #fff; text-decoration: none; border-radius: 12px; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <h1>StudySphere</h1>
-          <p>Express Backend Server is running on port ${PORT}.</p>
-          <a class="btn" href="http://localhost:5173">Open Web App on Port 5173</a>
-        </div>
-      </body>
-    </html>
-  `);
+
+  return renderNotFoundPage(res, req.path);
 });
 
 import http from 'http';

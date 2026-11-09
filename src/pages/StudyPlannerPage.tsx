@@ -675,8 +675,8 @@ export const StudyPlannerPage: React.FC = () => {
                 const dateStr = `${calYear}-${monthStr}-${dayStr}`;
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedCalendarDate;
-                const dayTasks = tasks.filter((t) => t.dueDate === dateStr);
-                const dayCompleted = dayTasks.filter((t) => t.isCompleted).length;
+                const dayTasks = safeTasks.filter((t) => t && t.dueDate === dateStr);
+                const dayCompleted = dayTasks.filter((t) => t && t.isCompleted).length;
 
                 return (
                   <button

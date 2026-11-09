@@ -11,6 +11,8 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+# Runtime local data
+data/
 *.local
 
 # Environment variables & secrets (CRITICAL: Never commit API keys or credentials)

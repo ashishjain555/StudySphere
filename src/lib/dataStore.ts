@@ -611,13 +611,16 @@ export const DataStore = {
   },
   deleteSubject(subjectId: string): void {
     const uid = getCurrentUserId();
-    const subjects = this.getSubjects(uid).filter((s) => s.id !== subjectId);
+    const rawSubjects = this.getSubjects(uid);
+    const subjects = (Array.isArray(rawSubjects) ? rawSubjects : []).filter((s) => s && s.id !== subjectId);
     setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), subjects);
 
-    const topics = this.getTopics().filter((t) => t.subjectId !== subjectId);
+    const rawTopics = this.getTopics();
+    const topics = (Array.isArray(rawTopics) ? rawTopics : []).filter((t) => t && t.subjectId !== subjectId);
     setStored(userKey(STORAGE_KEYS.TOPICS, uid), topics);
 
-    const materials = this.getMaterials().filter((m) => m.subjectId !== subjectId);
+    const rawMaterials = this.getMaterials();
+    const materials = (Array.isArray(rawMaterials) ? rawMaterials : []).filter((m) => m && m.subjectId !== subjectId);
     setStored(userKey(STORAGE_KEYS.MATERIALS, uid), materials);
 
     deleteSubjectFromSupabase(subjectId).catch((e) => console.warn('Supabase subject delete:', e));
@@ -840,7 +843,8 @@ export const DataStore = {
     syncTaskToSupabase(task).catch((e) => console.warn('Supabase task sync error:', e));
   },
   deleteTask(taskId: string): void {
-    const tasks = this.getTasks().filter((t) => t.id !== taskId);
+    const rawTasks = this.getTasks();
+    const tasks = (Array.isArray(rawTasks) ? rawTasks : []).filter((t) => t && t.id !== taskId);
     setStored(userKey(STORAGE_KEYS.STUDY_PLANS), tasks);
     // Cloud sync deletion to Supabase (study_plans table)
     deleteTaskFromSupabase(taskId).catch((e) => console.warn('Supabase task delete error:', e));
@@ -1042,7 +1046,8 @@ export const DataStore = {
     setStored(userKey(STORAGE_KEYS.ANALYZED_PDFS), list);
   },
   deleteAnalyzedPDF(id: string): void {
-    const list = this.getAnalyzedPDFs().filter((d) => d.id !== id);
+    const rawList = this.getAnalyzedPDFs();
+    const list = (Array.isArray(rawList) ? rawList : []).filter((d) => d && d.id !== id);
     setStored(userKey(STORAGE_KEYS.ANALYZED_PDFS), list);
   },
 

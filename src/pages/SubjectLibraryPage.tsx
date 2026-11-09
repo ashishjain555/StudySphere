@@ -113,6 +113,7 @@ export const SubjectLibraryPage: React.FC<SubjectLibraryPageProps> = ({ onNaviga
   const safeTopics = Array.isArray(allTopics) ? allTopics : [];
   const safeMaterials = Array.isArray(allMaterials) ? allMaterials : [];
   const safeWeakTopics = Array.isArray(allWeakTopics) ? allWeakTopics : [];
+  const safeQuizzes = Array.isArray(allQuizzes) ? allQuizzes : [];
 
   // Real Aggregated Metrics computed directly from DataStore
   const totalChapters = useMemo(() => {
@@ -643,12 +644,12 @@ export const SubjectLibraryPage: React.FC<SubjectLibraryPageProps> = ({ onNaviga
             const IconComp = getIcon(subj.icon);
 
             // Compute subject-specific real numbers
-            const sTopics = allTopics.filter((t) => t.subjectId === subj.id);
+            const sTopics = safeTopics.filter((t) => t && t.subjectId === subj.id);
             const computedChapters = new Set(sTopics.map((t) => `${t.documentId || 'core'}_${t.unitNumber}`)).size || subj.unitsCount || 1;
             const computedTopics = sTopics.length || subj.topicCount || 0;
-            const subjDocsCount = (subj.documents?.length || 0) + allMaterials.filter((m) => m.subjectId === subj.id).length;
-            const subjWeak = allWeakTopics.filter((wt) => wt.subjectId === subj.id);
-            const subjQuizzes = allQuizzes.filter((q) => q.subjectId === subj.id);
+            const subjDocsCount = (subj.documents?.length || 0) + safeMaterials.filter((m) => m && m.subjectId === subj.id).length;
+            const subjWeak = safeWeakTopics.filter((wt) => wt && wt.subjectId === subj.id);
+            const subjQuizzes = safeQuizzes.filter((q) => q && q.subjectId === subj.id);
             const avgQuizScore =
               subjQuizzes.length > 0
                 ? Math.round(subjQuizzes.reduce((sum, q) => sum + (q.percentage || 0), 0) / subjQuizzes.length)
@@ -784,11 +785,11 @@ export const SubjectLibraryPage: React.FC<SubjectLibraryPageProps> = ({ onNaviga
               </thead>
               <tbody className="divide-y divide-slate-800/80 text-slate-200">
                 {filteredSubjects.map((subj) => {
-                  const sTopics = allTopics.filter((t) => t.subjectId === subj.id);
+                  const sTopics = safeTopics.filter((t) => t && t.subjectId === subj.id);
                   const computedChapters = new Set(sTopics.map((t) => `${t.documentId || 'core'}_${t.unitNumber}`)).size || subj.unitsCount || 1;
                   const computedTopics = sTopics.length || subj.topicCount || 0;
-                  const subjDocsCount = (subj.documents?.length || 0) + allMaterials.filter((m) => m.subjectId === subj.id).length;
-                  const subjWeak = allWeakTopics.filter((wt) => wt.subjectId === subj.id);
+                  const subjDocsCount = (subj.documents?.length || 0) + safeMaterials.filter((m) => m && m.subjectId === subj.id).length;
+                  const subjWeak = safeWeakTopics.filter((wt) => wt && wt.subjectId === subj.id);
 
                   return (
                     <tr

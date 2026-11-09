@@ -75,8 +75,8 @@ const AppContent: React.FC = () => {
 
     if (loading) return;
 
-    // If logged-in user visits auth pages, redirect to dashboard
-    if (user && (currentPath === '/login' || currentPath === '/register')) {
+    // If logged-in user visits auth pages or bare /app, redirect to dashboard
+    if (user && (currentPath === '/login' || currentPath === '/register' || currentPath === '/app')) {
       if (!isOpeningBook) {
         navigate('/app/dashboard');
       }
@@ -227,6 +227,40 @@ const AppContent: React.FC = () => {
           {currentPath === '/app/admin' && <TeacherAdminPage />}
 
           {currentPath === '/app/profile' && <ProfilePage onNavigate={navigate} />}
+
+          {/* Client-Side 404 Fallback for unknown /app/* routes */}
+          {!(
+            currentPath === '/app/dashboard' ||
+            currentPath === '/app/subjects' ||
+            currentPath.startsWith('/app/subjects/') ||
+            currentPath === '/app/ai-tutor' ||
+            currentPath === '/app/pdf-analyzer' ||
+            currentPath === '/app/quiz' ||
+            currentPath === '/app/planner' ||
+            currentPath === '/app/weak-topics' ||
+            currentPath === '/app/progress' ||
+            currentPath === '/app/materials' ||
+            currentPath === '/app/admin' ||
+            currentPath === '/app/profile'
+          ) && (
+            <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-fadeIn">
+              <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-500/10">
+                <GraduationCap className="w-8 h-8" />
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="text-2xl font-bold text-white tracking-tight">Workspace Section Not Found</h2>
+                <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">
+                  The study section you navigated to does not exist or has been relocated.
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/app/dashboard')}
+                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+              >
+                Return to Study Dashboard
+              </button>
+            </div>
+          )}
         </main>
       </div>
 
