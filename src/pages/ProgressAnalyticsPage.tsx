@@ -1,5 +1,18 @@
-import React from 'react';
-import { TrendingUp, Flame, Clock, Award, CheckCircle2, BookOpen, BarChart3, AlertCircle } from 'lucide-react';
+import React, { useMemo } from 'react';
+import {
+  TrendingUp,
+  Flame,
+  Clock,
+  Award,
+  CheckCircle2,
+  BookOpen,
+  BarChart3,
+  AlertCircle,
+  Target,
+  Sparkles,
+  Layers,
+  Lightbulb,
+} from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -15,8 +28,10 @@ import {
   LineChart,
   Line,
   CartesianGrid,
+  Cell,
 } from 'recharts';
 import { DataStore } from '../lib/dataStore';
+import { TiltCard3D } from '../components/3d/TiltCard3D';
 
 export const ProgressAnalyticsPage: React.FC = () => {
   const subjects = DataStore.getSubjects();
@@ -34,12 +49,12 @@ export const ProgressAnalyticsPage: React.FC = () => {
       const d = new Date(t.dueDate || t.createdAt);
       if (!isNaN(d.getTime())) {
         const name = dayNames[d.getDay()];
-        dayMap[name] = (dayMap[name] || 0) + (t.durationMins || 30) / 60;
+        dayMap[name] = (dayMap[name] || 0) + (t.duration || t.durationMins || 30) / 60;
       }
     });
 
   quizAttempts.forEach((qa) => {
-    const d = new Date(qa.completedAt);
+    const d = new Date(qa.completedAt || qa.date || '');
     if (!isNaN(d.getTime())) {
       const name = dayNames[d.getDay()];
       const hrs = qa.timeTakenSeconds > 0 ? qa.timeTakenSeconds / 3600 : 0.25;
@@ -47,169 +62,230 @@ export const ProgressAnalyticsPage: React.FC = () => {
     }
   });
 
+  const today = new Date();
+  const todayDayName = dayNames[today.getDay()];
+
   const weeklyHours = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => ({
     day,
     hours: Math.round((dayMap[day] || 0) * 10) / 10,
+    isToday: day === todayDayName,
   }));
 
-  const radarData = subjects.map((s) => ({
-    subject: s.code,
-    score: s.progressPercentage || 0,
-  }));
+  const radarData = useMemo(() => {
+    return subjects.map((s) => ({
+      subject: s.code || s.name.slice(0, 10),
+      score: s.progressPercentage || 0,
+      fullMark: 100,
+    }));
+  }, [subjects]);
 
-  const quizTrendData = quizAttempts.slice(-10).map((qa, idx) => ({
-    attempt: `Q${idx + 1}: ${qa.subjectName.slice(0, 8)}`,
-    score: qa.scorePercentage,
-  }));
+  const quizTrendData = useMemo(() => {
+    if (quizAttempts.length === 0) {
+      return [
+        { attempt: 'Start', score: 0 },
+      ];
+    }
+    return quizAttempts.slice(-10).map((qa, idx) => ({
+      attempt: `Q${idx + 1}`,
+      title: qa.quizTitle || qa.topicTitle || 'Quiz',
+      score: qa.percentage || qa.scorePercentage || Math.round((qa.score / (qa.totalQuestions || 1)) * 100),
+    }));
+  }, [quizAttempts]);
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-8 animate-fadeIn pb-12">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-          <TrendingUp className="w-8 h-8 text-emerald-400" />
-          Progress & Learning Analytics
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+          <span>Progress & Learning Analytics</span>
         </h1>
-        <p className="text-sm text-gray-400 mt-1">
-          Monitor your study hours, quiz mastery trends, and subject completion rates.
+        <p className="text-xs sm:text-sm text-slate-400 mt-1">
+          Monitor your study hours, quiz mastery trajectories, and subject completion benchmarks in real-time.
         </p>
       </div>
 
       {/* KPI Stats Grid - All dynamic based on DataStore */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-6 rounded-3xl glass-card border-gray-800 text-center space-y-1">
-          <div className="text-3xl font-extrabold text-white">
-            {stats.weeklyStudyHours} hrs
+        <TiltCard3D maxTilt={4}>
+          <div className="p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 text-center space-y-1 h-full flex flex-col justify-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
+              {stats.totalHours || stats.weeklyStudyHours}h
+            </div>
+            <div className="text-xs text-slate-400 font-medium">Study Hours Logged</div>
           </div>
-          <div className="text-xs text-gray-400 font-medium">Weekly Study Hours</div>
-        </div>
+        </TiltCard3D>
 
-        <div className="p-6 rounded-3xl glass-card border-gray-800 text-center space-y-1">
-          <div className="text-3xl font-extrabold text-amber-400 flex items-center justify-center gap-1">
-            <Flame className="w-6 h-6 fill-amber-400" />
-            {stats.activeStreak} Days
+        <TiltCard3D maxTilt={4}>
+          <div className="p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 text-center space-y-1 h-full flex flex-col justify-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-amber-400 flex items-center justify-center gap-1.5 font-mono">
+              <Flame className="w-6 h-6 fill-amber-400 animate-pulse" />
+              {stats.activeStreak || 1} Days
+            </div>
+            <div className="text-xs text-slate-400 font-medium">
+              Study Streak
+            </div>
           </div>
-          <div className="text-xs text-gray-400 font-medium">
-            Active Streak (Longest: {stats.longestStreak})
-          </div>
-        </div>
+        </TiltCard3D>
 
-        <div className="p-6 rounded-3xl glass-card border-gray-800 text-center space-y-1">
-          <div className="text-3xl font-extrabold text-blue-600 dark:text-blue-400">
-            {stats.quizAccuracyAvg}%
+        <TiltCard3D maxTilt={4}>
+          <div className="p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 text-center space-y-1 h-full flex flex-col justify-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-blue-400 font-mono">
+              {stats.quizAccuracyAvg}%
+            </div>
+            <div className="text-xs text-slate-400 font-medium">Quiz Accuracy Average</div>
           </div>
-          <div className="text-xs text-gray-400 font-medium">Quiz Accuracy Average</div>
-        </div>
+        </TiltCard3D>
 
-        <div className="p-6 rounded-3xl glass-card border-gray-800 text-center space-y-1">
-          <div className="text-3xl font-extrabold text-cyan-600 dark:text-cyan-400">
-            {stats.topicsCompleted} / {stats.totalTopicsCount}
+        <TiltCard3D maxTilt={4}>
+          <div className="p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 text-center space-y-1 h-full flex flex-col justify-center">
+            <div className="text-2xl sm:text-3xl font-extrabold text-cyan-400 font-mono">
+              {stats.topicsCompleted} / {stats.totalTopicsCount}
+            </div>
+            <div className="text-xs text-slate-400 font-medium">Topics Mastered</div>
           </div>
-          <div className="text-xs text-gray-400 font-medium">Topics Completed</div>
-        </div>
+        </TiltCard3D>
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Weekly Hours */}
-        <div className="lg:col-span-6 p-6 rounded-3xl glass-panel border border-gray-800 space-y-4">
+        {/* Weekly Hours Bar Chart (8 cols) */}
+        <div className="lg:col-span-8 p-6 rounded-3xl glass-panel border border-slate-800 bg-slate-900/60 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-gray-100 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-emerald-400" />
-              Weekly Study Hours
+            <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-blue-400" />
+              Weekly Study Momentum
             </h2>
-            <span className="text-xs text-gray-400 font-mono">
-              Total: {stats.weeklyStudyHours} hrs
+            <span className="text-xs text-slate-400 font-mono">
+              Week Total: <strong className="text-blue-400">{stats.weeklyStudyHours} hrs</strong>
             </span>
           </div>
-          <div className="h-64 w-full">
+
+          <div className="h-64 w-full pt-2">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={weeklyHours}>
-                <XAxis dataKey="day" stroke="#9CA3AF" fontSize={12} tickLine={false} />
-                <YAxis stroke="#9CA3AF" fontSize={12} tickLine={false} unit="h" />
+              <BarChart data={weeklyHours} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="analyticsBarGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.85} />
+                    <stop offset="100%" stopColor="#1D4ED8" stopOpacity={0.35} />
+                  </linearGradient>
+                  <linearGradient id="analyticsTodayGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#60A5FA" stopOpacity={1} />
+                    <stop offset="100%" stopColor="#2563EB" stopOpacity={0.7} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="day" stroke="#64748B" fontSize={12} tickLine={false} axisLine={{ stroke: '#1E293B' }} />
+                <YAxis stroke="#64748B" fontSize={12} tickLine={false} axisLine={{ stroke: '#1E293B' }} unit="h" />
                 <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#111827',
-                    borderColor: '#374151',
-                    borderRadius: '0.75rem',
-                    color: '#F9FAFB',
-                    fontSize: '12px',
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.04)' }}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="p-3 rounded-xl bg-slate-900/95 border border-slate-700/80 shadow-xl backdrop-blur-md text-xs space-y-1">
+                          <p className="font-bold text-slate-200">{label}</p>
+                          <p className="text-blue-400 font-semibold">{payload[0].value} hours logged</p>
+                        </div>
+                      );
+                    }
+                    return null;
                   }}
-                  formatter={(value: any) => [`${value} hrs`, 'Study Time']}
                 />
-                <Bar dataKey="hours" fill="#10B981" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="hours" radius={[6, 6, 2, 2]}>
+                  {weeklyHours.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.isToday ? 'url(#analyticsTodayGrad)' : 'url(#analyticsBarGrad)'}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
 
-        {/* Subject Proficiency Radar */}
-        <div className="lg:col-span-6 p-6 rounded-3xl glass-panel border border-gray-800 space-y-4">
-          <h2 className="text-base font-bold text-gray-100 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-            Subject Proficiency Matrix
-          </h2>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="#374151" />
-                <PolarAngleAxis dataKey="subject" stroke="#9CA3AF" fontSize={11} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#6B7280" fontSize={10} />
-                <Radar name="Proficiency" dataKey="score" stroke="#2563EB" fill="#2563EB" fillOpacity={0.3} />
-              </RadarChart>
-            </ResponsiveContainer>
+          <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800/80 flex items-start gap-3">
+            <div className="w-7 h-7 rounded-lg bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
+              <Lightbulb className="w-4 h-4" />
+            </div>
+            <div className="text-xs text-slate-300">
+              <span className="font-semibold text-white">Study Habit Recommendation: </span>
+              Completing 45 focused minutes each day yields 3x higher retention than cramming for 5 hours right before exams.
+            </div>
           </div>
         </div>
 
-        {/* Quiz Performance Progression */}
-        <div className="lg:col-span-12 p-6 rounded-3xl glass-panel border border-gray-800 space-y-4">
+        {/* Subject Mastery Radar (4 cols) */}
+        <div className="lg:col-span-4 p-6 rounded-3xl glass-panel border border-slate-800 bg-slate-900/60 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-gray-100 flex items-center gap-2">
-              <Award className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-              Quiz Performance Trend
+            <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-cyan-400" />
+              Syllabus Balance
             </h2>
-            <span className="text-xs text-gray-400 font-mono">
-              {quizAttempts.length} Total Quizzes Taken
-            </span>
+            <span className="text-[11px] text-slate-400 font-mono">By Course</span>
           </div>
 
-          {quizTrendData.length > 0 ? (
+          {radarData.length >= 3 ? (
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={quizTrendData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1F2937" />
-                  <XAxis dataKey="attempt" stroke="#9CA3AF" fontSize={11} tickLine={false} />
-                  <YAxis domain={[0, 100]} stroke="#9CA3AF" fontSize={12} tickLine={false} unit="%" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#111827',
-                      borderColor: '#374151',
-                      borderRadius: '0.75rem',
-                      color: '#F9FAFB',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: any) => [`${value}%`, 'Score']}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#2563EB"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: '#2563EB' }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="#334155" />
+                  <PolarAngleAxis dataKey="subject" stroke="#94A3B8" fontSize={11} />
+                  <PolarRadiusAxis stroke="#64748B" domain={[0, 100]} fontSize={10} />
+                  <Radar name="Completion %" dataKey="score" stroke="#06B6D4" fill="#06B6D4" fillOpacity={0.35} />
+                </RadarChart>
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="p-8 text-center border border-dashed border-gray-800 rounded-2xl space-y-2">
-              <BarChart3 className="w-8 h-8 text-gray-600 mx-auto" />
-              <p className="text-sm font-semibold text-gray-300">No Quiz Attempts Recorded Yet</p>
-              <p className="text-xs text-gray-500 max-w-sm mx-auto">
-                Generate and complete quizzes in the Quiz Generator to unlock live accuracy trajectories and mastery tracking.
-              </p>
+            <div className="h-64 flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
+              <Layers className="w-8 h-8 text-cyan-400/50" />
+              <p className="text-xs text-slate-300">Enrol in 3 or more subjects to unlock full radar analysis.</p>
             </div>
           )}
+        </div>
+
+        {/* Quiz Score Trajectory (12 cols) */}
+        <div className="lg:col-span-12 p-6 rounded-3xl glass-panel border border-slate-800 bg-slate-900/60 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                <Target className="w-4 h-4 text-emerald-400" />
+                Quiz Score Trajectory & Diagnostic Trend
+              </h2>
+              <p className="text-xs text-slate-400">Tracking score improvements across your recent practice sessions</p>
+            </div>
+            <span className="text-xs font-mono px-3 py-1 rounded-full bg-slate-800 text-emerald-400 border border-slate-700 font-bold">
+              Avg: {stats.quizAccuracyAvg}%
+            </span>
+          </div>
+
+          <div className="h-60 w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={quizTrendData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
+                <CartesianGrid stroke="#1E293B" strokeDasharray="3 3" />
+                <XAxis dataKey="attempt" stroke="#64748B" fontSize={12} tickLine={false} />
+                <YAxis stroke="#64748B" fontSize={12} tickLine={false} domain={[0, 100]} unit="%" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#0F172A',
+                    borderColor: '#334155',
+                    borderRadius: '0.75rem',
+                    color: '#F8FAFC',
+                    fontSize: '12px',
+                  }}
+                  formatter={(value: any) => [`${value}%`, 'Accuracy']}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="score"
+                  stroke="#10B981"
+                  strokeWidth={2.5}
+                  dot={{ r: 4, fill: '#10B981', stroke: '#064E3B' }}
+                  activeDot={{ r: 6, fill: '#34D399' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>

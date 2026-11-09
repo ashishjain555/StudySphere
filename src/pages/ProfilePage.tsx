@@ -171,14 +171,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
 
   return (
     <div className="space-y-8 animate-fadeIn max-w-5xl mx-auto pb-12">
-      {/* Page Title & Breadcrumb */}
+      {/* Page Title & Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-            <User className="w-8 h-8 text-blue-500" />
-            My Profile & Academic Identity
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400">
+              <User className="w-5 h-5" />
+            </div>
+            <span>My Profile & Academic Identity</span>
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
             Manage your personal credentials, university information, and study preferences.
           </p>
         </div>

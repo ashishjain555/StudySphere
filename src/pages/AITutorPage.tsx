@@ -12,6 +12,11 @@ import {
   BookOpen,
   MessageSquare,
   ArrowRight,
+  Brain,
+  Sparkles,
+  Bot,
+  User,
+  X,
 } from 'lucide-react';
 import { LearningLevel, ChatMessage, AIConversation } from '../types';
 import { DataStore } from '../lib/dataStore';
@@ -36,7 +41,7 @@ const formatInline = (text: string): React.ReactNode => {
     }
     if (token.startsWith('`') && token.endsWith('`') && token.length >= 2) {
       return (
-        <code key={idx} className="px-1.5 py-0.5 rounded bg-gray-950 border border-gray-800 text-cyan-300 font-mono text-xs">
+        <code key={idx} className="px-1.5 py-0.5 rounded bg-slate-950 border border-slate-800 text-cyan-300 font-mono text-xs">
           {token.slice(1, -1)}
         </code>
       );
@@ -69,9 +74,9 @@ const renderFormattedContent = (content: string) => {
       const language = match ? match[1] || '' : '';
       const code = match ? match[2] : part.slice(3, -3);
       return (
-        <div key={pIdx} className="my-2 rounded-xl bg-gray-950 border border-gray-800 overflow-hidden font-mono text-xs">
+        <div key={pIdx} className="my-2.5 rounded-xl bg-slate-950 border border-slate-800 overflow-hidden font-mono text-xs">
           {language && (
-            <div className="px-3 py-1 bg-gray-900 border-b border-gray-800 text-[10px] text-gray-400 font-bold uppercase">
+            <div className="px-3 py-1 bg-slate-900 border-b border-slate-800 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
               {language}
             </div>
           )}
@@ -102,22 +107,22 @@ const renderFormattedContent = (content: string) => {
         const dataRows = rows.slice(1).filter((r) => !isSeparator(r));
 
         elements.push(
-          <div key={`tbl_${keyPrefix}`} className="my-3 overflow-x-auto rounded-xl border border-gray-800">
+          <div key={`tbl_${keyPrefix}`} className="my-3 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/60">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="bg-gray-800/60 text-gray-200">
+                <tr className="bg-slate-900/90 text-slate-200 border-b border-slate-800">
                   {headerRow.map((col, cIdx) => (
-                    <th key={cIdx} className="p-2 border-b border-gray-700 font-bold">
+                    <th key={cIdx} className="p-2.5 font-bold">
                       {formatInline(col)}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-800/80">
                 {dataRows.map((row, rIdx) => (
-                  <tr key={rIdx} className="border-b border-gray-800/60 hover:bg-gray-800/30">
+                  <tr key={rIdx} className="hover:bg-slate-800/30">
                     {row.map((col, cIdx) => (
-                      <td key={cIdx} className="p-2 text-gray-300">
+                      <td key={cIdx} className="p-2.5 text-slate-300">
                         {formatInline(col)}
                       </td>
                     ))}
@@ -148,7 +153,7 @@ const renderFormattedContent = (content: string) => {
 
       if (trimmed.startsWith('### ')) {
         elements.push(
-          <h4 key={`h3_${lIdx}`} className="text-sm font-bold text-blue-600 dark:text-blue-300 mt-2.5 mb-1">
+          <h4 key={`h3_${lIdx}`} className="text-sm font-bold text-blue-400 mt-3 mb-1">
             {formatInline(trimmed.replace(/^###\s+/, ''))}
           </h4>
         );
@@ -156,7 +161,7 @@ const renderFormattedContent = (content: string) => {
       }
       if (trimmed.startsWith('## ')) {
         elements.push(
-          <h3 key={`h2_${lIdx}`} className="text-base font-bold text-white mt-3 mb-1">
+          <h3 key={`h2_${lIdx}`} className="text-base font-bold text-white mt-3.5 mb-1.5">
             {formatInline(trimmed.replace(/^##\s+/, ''))}
           </h3>
         );
@@ -166,9 +171,9 @@ const renderFormattedContent = (content: string) => {
       if (/^[-*•]\s+/.test(trimmed)) {
         const itemContent = trimmed.replace(/^[-*•]\s+/, '');
         elements.push(
-          <div key={`li_${lIdx}`} className="flex items-start gap-2 my-1 text-gray-200">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 mt-2 shrink-0" />
-            <span className="flex-1">{formatInline(itemContent)}</span>
+          <div key={`li_${lIdx}`} className="flex items-start gap-2.5 my-1 text-slate-300 text-xs sm:text-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0" />
+            <span className="flex-1 leading-relaxed">{formatInline(itemContent)}</span>
           </div>
         );
         return;
@@ -177,16 +182,16 @@ const renderFormattedContent = (content: string) => {
       const numMatch = trimmed.match(/^(\d+)\.\s+(.*)$/);
       if (numMatch) {
         elements.push(
-          <div key={`num_${lIdx}`} className="flex items-start gap-2 my-1 text-gray-200">
-            <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400 shrink-0 mt-0.5">{numMatch[1]}.</span>
-            <span className="flex-1">{formatInline(numMatch[2])}</span>
+          <div key={`num_${lIdx}`} className="flex items-start gap-2.5 my-1 text-slate-300 text-xs sm:text-sm">
+            <span className="text-xs font-mono font-bold text-blue-400 shrink-0 mt-0.5">{numMatch[1]}.</span>
+            <span className="flex-1 leading-relaxed">{formatInline(numMatch[2])}</span>
           </div>
         );
         return;
       }
 
       elements.push(
-        <p key={`p_${lIdx}`} className="my-1 text-gray-200 leading-relaxed">
+        <p key={`p_${lIdx}`} className="my-1.5 text-slate-200 text-xs sm:text-sm leading-relaxed">
           {formatInline(line)}
         </p>
       );
@@ -379,37 +384,37 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
   };
 
   return (
-    <div className="h-[calc(100vh-120px)] grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn">
+    <div className="h-[calc(100vh-125px)] grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fadeIn pb-2">
       {/* Left Sidebar: Conversations History */}
-      <div className="hidden lg:flex lg:col-span-3 glass-panel bg-gray-950/80 rounded-3xl border border-gray-800 p-4 flex-col justify-between">
-        <div>
+      <div className="hidden lg:flex lg:col-span-3 glass-panel bg-slate-950/80 rounded-3xl border border-slate-800 p-4 flex-col justify-between">
+        <div className="space-y-3">
           <button
             onClick={createNewConversation}
-            className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center justify-center gap-2 border border-blue-400/30 transition-all mb-4"
+            className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs flex items-center justify-center gap-2 border border-blue-400/30 transition-all cursor-pointer shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            New Conversation
+            <span>New Chat Session</span>
           </button>
 
-          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">
-            History
+          <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 pt-2">
+            History ({conversations.length})
           </div>
 
-          <div className="space-y-1 overflow-y-auto max-h-[50vh]">
+          <div className="space-y-1 overflow-y-auto max-h-[50vh] pr-1">
             {conversations.map((conv) => (
               <div
                 key={conv.id}
                 className={`group w-full p-2.5 rounded-xl text-left text-xs font-medium flex items-center justify-between transition-all ${
                   activeConvId === conv.id
-                    ? 'bg-blue-50 dark:bg-blue-600/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30'
-                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-900'
+                    ? 'bg-blue-500/15 text-blue-300 border border-blue-500/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
                 }`}
               >
                 <button
                   onClick={() => setActiveConvId(conv.id)}
-                  className="flex items-center gap-2.5 truncate flex-1 text-left min-w-0"
+                  className="flex items-center gap-2.5 truncate flex-1 text-left min-w-0 cursor-pointer"
                 >
-                  <MessageSquare className="w-4 h-4 shrink-0 text-blue-500 dark:text-blue-400" />
+                  <MessageSquare className="w-4 h-4 shrink-0 text-blue-400" />
                   <span className="truncate">{conv.title || 'Conversation'}</span>
                 </button>
                 {conversations.length > 1 && (
@@ -418,7 +423,7 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
                       e.stopPropagation();
                       setConvToDelete(conv);
                     }}
-                    className="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 text-gray-500 transition-opacity ml-1 shrink-0 cursor-pointer"
+                    className="opacity-0 group-hover:opacity-100 hover:text-rose-400 p-1 text-slate-500 transition-opacity ml-1 shrink-0 cursor-pointer"
                     title="Delete conversation"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -429,64 +434,64 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-gray-900/60 border border-gray-800 text-[11px] text-gray-400">
-          💡 <strong className="text-gray-200">Tip:</strong> Select <strong>Exam Focused</strong> level for model answers & common exam traps!
+        <div className="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+          💡 <strong className="text-white">Tip:</strong> Switch to <span className="text-amber-400 font-semibold">Exam Focused</span> level above for step-by-step marking schemes and model answers!
         </div>
       </div>
 
       {/* Main Chat Area */}
-      <div className="lg:col-span-9 glass-panel bg-gray-950/90 rounded-3xl border border-gray-800 flex flex-col justify-between overflow-hidden">
+      <div className="lg:col-span-9 glass-panel bg-slate-950/90 rounded-3xl border border-slate-800 flex flex-col justify-between overflow-hidden shadow-2xl">
         {/* Top Control Bar: Learning Level Selector */}
-        <div className="px-6 py-4 border-b border-gray-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-900/40">
+        <div className="px-6 py-4 border-b border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-900/40">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0">
-              <MessageSquare className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0">
+              <Bot className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-100 flex items-center gap-2">
-                Study Tutor
-                <span className="text-[10px] font-mono bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full font-bold border border-blue-200 dark:border-blue-500/30">
-                  Assistant
+              <h2 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                Study Tutor AI
+                <span className="text-[10px] font-mono bg-blue-500/15 text-blue-300 px-2 py-0.5 rounded-full font-bold border border-blue-500/25">
+                  Academic Engine
                 </span>
               </h2>
-              <p className="text-xs text-gray-400">Ask questions, clarify concepts, get model exam answers</p>
+              <p className="text-xs text-slate-400">Concept breakdowns, exam proofs, code analysis, and Q&A</p>
             </div>
           </div>
 
           {/* Level Switcher */}
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-gray-900 border border-gray-800 text-xs">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
             <button
               onClick={() => setLearningLevel('beginner')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 learningLevel === 'beginner'
-                  ? 'bg-emerald-600 text-white shadow'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <GraduationCap className="w-3.5 h-3.5" />
-              Beginner
+              <span>Beginner</span>
             </button>
             <button
               onClick={() => setLearningLevel('intermediate')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 learningLevel === 'intermediate'
-                  ? 'bg-blue-600 text-white border border-blue-400/40'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
-              Intermediate
+              <span>Intermediate</span>
             </button>
             <button
               onClick={() => setLearningLevel('exam_focused')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
                 learningLevel === 'exam_focused'
-                  ? 'bg-amber-600 text-white border border-amber-400/40'
-                  : 'text-gray-400 hover:text-gray-200'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Target className="w-3.5 h-3.5" />
-              Exam Focused
+              <span>Exam Focused</span>
             </button>
           </div>
         </div>
@@ -495,12 +500,12 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {(!currentConv || currentConv.messages.length === 0) && (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-6 my-auto">
-              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shadow-sm">
-                <GraduationCap className="w-8 h-8" />
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shadow-inner">
+                <Brain className="w-8 h-8" />
               </div>
               <div className="max-w-md space-y-2">
-                <h3 className="text-xl font-bold text-white">How can I help your studies today?</h3>
-                <p className="text-xs text-gray-400 leading-relaxed">
+                <h3 className="text-xl font-bold text-white">How can I assist your study session?</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
                   Ask any question across computer science, engineering, or mathematics. Choose your explanation depth above.
                 </p>
               </div>
@@ -520,10 +525,10 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
                       setInputQuery(q);
                       handleSendMessage(q);
                     }}
-                    className="p-3 rounded-xl glass-card border-gray-800 hover:border-blue-500/50 hover:bg-blue-600/10 text-xs text-gray-300 hover:text-white transition-all text-left flex items-center justify-between group"
+                    className="p-3 rounded-xl bg-slate-900/70 border border-slate-800 hover:border-blue-500/40 text-slate-300 hover:text-white text-xs text-left transition-all flex items-center justify-between group cursor-pointer"
                   >
                     <span>{q}</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 shrink-0 ml-2 transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 ))}
               </div>
@@ -533,68 +538,79 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
           {currentConv?.messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex items-start gap-3.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.sender === 'ai' && (
-                <div className="w-8 h-8 rounded-xl bg-blue-600 border border-blue-400/30 flex items-center justify-center text-white shrink-0">
-                  <GraduationCap className="w-4 h-4" />
+                <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0 mt-1">
+                  <Bot className="w-4 h-4" />
                 </div>
               )}
 
               <div
-                className={`max-w-2xl rounded-2xl p-5 text-sm leading-relaxed ${
+                className={`max-w-2xl rounded-2xl p-4 sm:p-5 text-xs sm:text-sm leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-blue-600 text-white rounded-tr-none border border-blue-400/30'
-                    : 'glass-card bg-gray-900/80 border-gray-800 text-gray-200 rounded-tl-none'
+                    ? 'bg-blue-600 text-white rounded-tr-none shadow-md'
+                    : 'bg-slate-900/80 border border-slate-800 text-slate-200 rounded-tl-none shadow-sm'
                 }`}
               >
-                {/* AI Response Header tag */}
-                {msg.sender === 'ai' && msg.learningLevel && (
-                  <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-800 text-xs text-gray-400">
-                    <span className="font-mono text-blue-600 dark:text-blue-300 uppercase tracking-wider text-[10px] font-bold">
-                      {msg.learningLevel.replace('_', ' ')} Mode
-                    </span>
-                    <button
-                      onClick={() => copyToClipboard(msg.content, msg.id)}
-                      className="hover:text-white flex items-center gap-1 transition-colors"
-                    >
-                      {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedId === msg.id ? 'Copied' : 'Copy'}</span>
-                    </button>
+                {msg.sender === 'ai' ? (
+                  <div className="space-y-2">
+                    {renderFormattedContent(msg.content)}
+                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-500">
+                      <span>{msg.timestamp || 'Just now'}</span>
+                      <button
+                        onClick={() => copyToClipboard(msg.content, msg.id)}
+                        className="flex items-center gap-1 hover:text-slate-300 transition-colors cursor-pointer"
+                      >
+                        {copiedId === msg.id ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400" />
+                            <span className="text-emerald-400">Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span>Copy Answer</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="whitespace-pre-wrap">{msg.content}</p>
+                    <div className="text-[10px] text-blue-200/80 text-right mt-1">{msg.timestamp || 'Sent'}</div>
                   </div>
                 )}
-
-                <div className="font-sans text-sm leading-relaxed">
-                  {msg.sender === 'user' ? (
-                    <div className="whitespace-pre-wrap">{msg.content}</div>
-                  ) : (
-                    renderFormattedContent(msg.content)
-                  )}
-                </div>
-
-                <div className="text-[10px] text-gray-400 mt-2 text-right">{msg.timestamp}</div>
               </div>
+
+              {msg.sender === 'user' && (
+                <div className="w-8 h-8 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 shrink-0 mt-1">
+                  <User className="w-4 h-4" />
+                </div>
+              )}
             </div>
           ))}
 
           {isLoading && (
-            <div className="flex gap-4 items-center">
-              <div className="w-8 h-8 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 shrink-0">
-                <GraduationCap className="w-4 h-4 animate-pulse" />
+            <div className="flex items-start gap-3.5 justify-start">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0">
+                <Bot className="w-4 h-4" />
               </div>
-              <div className="px-4 py-3 rounded-2xl glass-card text-xs text-blue-600 dark:text-blue-300 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce" />
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce [animation-delay:0.2s]" />
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-bounce [animation-delay:0.4s]" />
-                <span>Formulating explanation...</span>
+              <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 rounded-tl-none flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" />
+                <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:0.2s]" />
+                <div className="w-2 h-2 rounded-full bg-blue-400 animate-bounce [animation-delay:0.4s]" />
+                <span className="text-xs text-slate-400 ml-1">Analyzing concept & formulating explanation...</span>
               </div>
             </div>
           )}
+
           <div ref={chatBottomRef} />
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 border-t border-gray-800 bg-gray-950">
+        <div className="p-4 border-t border-slate-800 bg-slate-900/40">
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -606,14 +622,13 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
               type="text"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
-              placeholder={`Ask anything in ${learningLevel.replace('_', ' ')} mode (e.g. "Explain Dijkstra's algorithm")...`}
-              className="flex-1 py-3 px-4 rounded-xl bg-gray-900 border border-gray-800 focus:border-indigo-500 text-gray-100 placeholder-gray-500 text-sm focus:outline-none transition-all"
+              placeholder="Ask about formulas, algorithms, exam questions, or concept derivations..."
+              className="flex-1 py-3 px-4 rounded-2xl bg-slate-950/80 border border-slate-800 focus:border-blue-500 text-slate-100 placeholder-slate-500 text-xs sm:text-sm focus:outline-none transition-all shadow-inner"
             />
-
             <button
               type="submit"
               disabled={!inputQuery.trim() || isLoading}
-              className="p-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold border border-blue-400/30 transition-all disabled:opacity-50 cursor-pointer"
+              className="p-3 rounded-2xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white transition-all cursor-pointer shadow-sm shrink-0"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -623,39 +638,37 @@ export const AITutorPage: React.FC<AITutorPageProps> = ({ initialQuery, onClearI
 
       {/* Delete Conversation Confirmation Modal */}
       {convToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-md p-6 rounded-3xl glass-panel bg-gray-950 border border-red-500/30 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn">
+          <div className="w-full max-w-md p-6 rounded-3xl glass-panel bg-slate-950 border border-rose-500/30 shadow-2xl space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/30 shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30 shrink-0">
                 <Trash2 className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-white">Delete Conversation?</h3>
-                <p className="text-xs text-gray-400">This conversation will be permanently removed.</p>
+                <h3 className="text-base font-bold text-white">Delete Chat Session?</h3>
+                <p className="text-xs text-slate-400">This conversation will be cleared from your history.</p>
               </div>
             </div>
 
-            <p className="text-sm text-gray-300 bg-gray-900/60 p-3.5 rounded-2xl border border-gray-800 leading-relaxed">
-              Are you sure you want to delete <strong className="text-white">"{convToDelete.title || 'Conversation'}"</strong>? All chat messages and answers in this study session will be permanently erased.
+            <p className="text-sm text-slate-300 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-800">
+              Are you sure you want to delete <strong className="text-white">"{convToDelete.title}"</strong>?
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
-                type="button"
                 onClick={() => setConvToDelete(null)}
-                className="px-4 py-2 rounded-xl bg-gray-900 hover:bg-gray-800 text-gray-300 text-xs font-semibold cursor-pointer transition-colors"
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold cursor-pointer transition-colors"
               >
                 Cancel
               </button>
               <button
-                type="button"
                 onClick={() => {
                   deleteConversation(convToDelete.id);
                   setConvToDelete(null);
                 }}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold border border-red-400/30 cursor-pointer transition-colors shadow-lg shadow-red-950/40"
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold border border-rose-400/30 cursor-pointer transition-colors"
               >
-                Yes, Delete Conversation
+                Yes, Delete Chat
               </button>
             </div>
           </div>

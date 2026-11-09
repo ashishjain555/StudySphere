@@ -592,24 +592,75 @@ export const PDFAnalyzerPage: React.FC<PDFAnalyzerPageProps> = ({
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-            <FileText className="w-8 h-8 text-blue-500 dark:text-blue-400" />
-            Smart PDF Analyzer
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400">
+              <FileText className="w-5 h-5" />
+            </div>
+            <span>Smart PDF Analyzer & OCR</span>
           </h1>
-          <p className="text-sm text-gray-400 mt-1">
-            Upload study documents for deep AI content extraction, topic identification, & document Q&A.
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Deep AI extraction, chapter & topic breakdowns, exam cheatsheets, and interactive document Q&A.
           </p>
         </div>
 
         {analyzedList.length > 0 && !showUploader && (
           <button
             onClick={() => setShowUploader(true)}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs border border-blue-400/30 flex items-center gap-2 transition-all self-start md:self-auto cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs border border-blue-400/30 flex items-center gap-2 transition-all self-start md:self-auto cursor-pointer shadow-sm"
           >
-            <Plus className="w-4 h-4" />
-            Upload Another PDF
+            <Plus className="w-4 h-4 text-blue-200" />
+            <span>Upload Another PDF</span>
           </button>
         )}
+      </div>
+
+      {/* Real Metrics Strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="p-4 sm:p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400 shrink-0">
+            <FileText className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-white font-mono">{analyzedList.length}</div>
+            <div className="text-xs text-slate-400">Analyzed Documents</div>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/25 flex items-center justify-center text-cyan-400 shrink-0">
+            <Layers className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-white font-mono">
+              {activeRecord ? getRecordTopics(activeRecord).length : 0}
+            </div>
+            <div className="text-xs text-slate-400">Extracted Topics</div>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/25 flex items-center justify-center text-indigo-400 shrink-0">
+            <MessageSquare className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-xl sm:text-2xl font-bold text-white font-mono">
+              {activeRecord?.chatHistory?.length || 0}
+            </div>
+            <div className="text-xs text-slate-400">Doc Q&A Exchanges</div>
+          </div>
+        </div>
+
+        <div className="p-4 sm:p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+            <Languages className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="text-sm sm:text-base font-bold text-white uppercase font-mono">
+              {language === 'hinglish' ? 'Hinglish' : 'English'}
+            </div>
+            <div className="text-xs text-slate-400">Summary Language</div>
+          </div>
+        </div>
       </div>
 
       {/* Previously Analyzed Documents Switcher */}
