@@ -107,8 +107,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
   }, [tasks, quizAttempts]);
 
   // Academic Progress Metrics
+  const stats = useMemo(() => DataStore.getStatsSummary(), [tasks, quizAttempts, subjects]);
   const completedTasks = tasks.filter((t) => t.isCompleted);
-  const totalWeeklyHours = weeklyHoursData.reduce((acc, curr) => acc + curr.hours, 0).toFixed(1);
+  const calculatedWeeklyHours = weeklyHoursData.reduce((acc, curr) => acc + curr.hours, 0);
+  const displayHours = (calculatedWeeklyHours > 0 ? calculatedWeeklyHours.toFixed(1) : stats.weeklyStudyHours.toFixed(1));
   const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 100;
 
   const handleToggleTask = (taskId: string) => {
@@ -219,7 +221,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
               <div className="flex-1 sm:flex-initial px-5 py-3.5 rounded-2xl glass-card border border-slate-800 bg-slate-900/70 text-center min-w-[105px]">
                 <div className="flex items-center justify-center gap-1.5 text-amber-400 font-bold text-lg">
                   <Flame className="w-5 h-5 fill-amber-400 animate-pulse" />
-                  {quizAttempts.length > 0 ? `${quizAttempts.length} Days` : '1 Day'}
+                  {stats.activeStreak || (quizAttempts.length > 0 ? `${quizAttempts.length} Days` : '1 Day')}
                 </div>
                 <div className="text-[11px] text-slate-400 font-medium">Study Streak</div>
               </div>
@@ -228,7 +230,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
               <div className="flex-1 sm:flex-initial px-5 py-3.5 rounded-2xl glass-card border border-slate-800 bg-slate-900/70 text-center min-w-[105px]">
                 <div className="flex items-center justify-center gap-1.5 text-blue-400 font-bold text-lg">
                   <Clock className="w-5 h-5" />
-                  {totalWeeklyHours}h
+                  {displayHours}h
                 </div>
                 <div className="text-[11px] text-slate-400 font-medium">This Week</div>
               </div>

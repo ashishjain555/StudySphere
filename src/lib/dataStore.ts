@@ -37,7 +37,51 @@ import {
 function getStored<T>(key: string, defaultVal: T): T {
   try {
     const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultVal;
+    if (item !== null) {
+      const parsed = JSON.parse(item);
+      if (Array.isArray(parsed) ? parsed.length > 0 : (parsed !== null && parsed !== undefined)) {
+        return parsed;
+      }
+    }
+
+    // Multi-tier Fallback & Auto-Migration:
+    // If the key is user-scoped (e.g. studysphere_quiz_attempts_ashishjain555_gmail_com):
+    // Check if there is data under the user's raw ID or legacy un-scoped key
+    const rawUser = localStorage.getItem(STORAGE_KEYS.USER);
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      if (u && u.id) {
+        const lastUnderscore = key.lastIndexOf('_');
+        if (lastUnderscore > 0) {
+          const baseKey = key.slice(0, lastUnderscore);
+          // 1. Check raw u.id fallback
+          const altKey = `${baseKey}_${u.id}`;
+          if (altKey !== key) {
+            const altItem = localStorage.getItem(altKey);
+            if (altItem !== null) {
+              const altParsed = JSON.parse(altItem);
+              if (Array.isArray(altParsed) ? altParsed.length > 0 : Boolean(altParsed)) {
+                // Permanently migrate to the email-scoped key!
+                localStorage.setItem(key, altItem);
+                return altParsed;
+              }
+            }
+          }
+          // 2. Check legacy un-scoped baseKey fallback
+          const legacyItem = localStorage.getItem(baseKey);
+          if (legacyItem !== null) {
+            const legacyParsed = JSON.parse(legacyItem);
+            if (Array.isArray(legacyParsed) ? legacyParsed.length > 0 : Boolean(legacyParsed)) {
+              // Permanently migrate to the email-scoped key!
+              localStorage.setItem(key, legacyItem);
+              return legacyParsed;
+            }
+          }
+        }
+      }
+    }
+
+    return item !== null ? JSON.parse(item) : defaultVal;
   } catch (e) {
     console.error(`Error reading ${key} from localStorage`, e);
     return defaultVal;
@@ -46,7 +90,26 @@ function getStored<T>(key: string, defaultVal: T): T {
 
 function setStored<T>(key: string, val: T): void {
   try {
-    localStorage.setItem(key, JSON.stringify(val));
+    const serialized = JSON.stringify(val);
+    localStorage.setItem(key, serialized);
+
+    // Mirror to user.id if key is user-email scoped to guarantee 100% interoperability
+    try {
+      const rawUser = localStorage.getItem(STORAGE_KEYS.USER);
+      if (rawUser) {
+        const u = JSON.parse(rawUser);
+        if (u && u.id) {
+          const lastUnderscore = key.lastIndexOf('_');
+          if (lastUnderscore > 0) {
+            const baseKey = key.slice(0, lastUnderscore);
+            const altKey = `${baseKey}_${u.id}`;
+            if (altKey !== key) {
+              localStorage.setItem(altKey, serialized);
+            }
+          }
+        }
+      }
+    } catch {}
   } catch (e) {
     console.error(`Error saving ${key} to localStorage`, e);
   }
@@ -339,11 +402,34 @@ export const SAMPLE_QUIZ_BANK: QuizQuestion[] = [
   },
 ];
 
+export function getCurrentUserEmailKey(customIdentifier?: string): string {
+  try {
+    if (customIdentifier) {
+      if (customIdentifier.includes('@')) {
+        return customIdentifier.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+      }
+      return customIdentifier.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+    }
+    const item = localStorage.getItem(STORAGE_KEYS.USER);
+    if (item) {
+      const u = JSON.parse(item);
+      if (u && u.email) {
+        return u.email.toLowerCase().trim().replace(/[^a-z0-9]/g, '_');
+      }
+      if (u && u.id) {
+        return u.id.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_');
+      }
+    }
+  } catch (e) {}
+  return 'default_user';
+}
+
 export function getCurrentUserId(): string {
   try {
     const item = localStorage.getItem(STORAGE_KEYS.USER);
     if (item) {
       const u = JSON.parse(item);
+      if (u && u.email) return u.email;
       if (u && u.id) return u.id;
     }
   } catch (e) {}
@@ -351,8 +437,8 @@ export function getCurrentUserId(): string {
 }
 
 export function userKey(baseKey: string, customUserId?: string): string {
-  const uid = customUserId || getCurrentUserId();
-  return `${baseKey}_${uid}`;
+  const emailSlug = getCurrentUserEmailKey(customUserId);
+  return `${baseKey}_${emailSlug}`;
 }
 
 export const DataStore = {
@@ -385,37 +471,58 @@ export const DataStore = {
     registered[emailKey] = profile;
     setStored('studysphere_registered_users', registered);
 
-    const uid = profile.id;
+    const uid = profile.email || profile.id;
 
-    // 3. Explicitly initialize fresh empty data collections for this specific user
-    setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), []);
-    setStored(userKey(STORAGE_KEYS.TOPICS, uid), []);
-    setStored(userKey(STORAGE_KEYS.MATERIALS, uid), []);
-    setStored(userKey(STORAGE_KEYS.STUDY_PLANS, uid), []);
-    setStored(userKey(STORAGE_KEYS.WEAK_TOPICS, uid), []);
-    setStored(userKey(STORAGE_KEYS.QUIZ_ATTEMPTS, uid), []);
-    setStored(userKey(STORAGE_KEYS.ANALYZED_PDFS, uid), []);
-    setStored(userKey('studysphere_user_progress', uid), {});
+    // 3. Safeguard: Only initialize collections if NO previous data exists for this email!
+    // This guarantees that an existing user's data is NEVER wiped or reset!
+    const existingAttempts = getStored<QuizAttempt[]>(userKey(STORAGE_KEYS.QUIZ_ATTEMPTS, uid), []);
+    if (existingAttempts.length === 0) {
+      setStored(userKey(STORAGE_KEYS.QUIZ_ATTEMPTS, uid), []);
+    }
 
-    // 4. Fresh empty conversation with 0 messages
-    const freshConv: AIConversation = {
-      id: `conv_${uid}_${Date.now()}`,
-      userId: uid,
-      title: 'Study Assistant Session',
-      updatedAt: new Date().toISOString(),
-      messages: [],
-    };
-    setStored(userKey(STORAGE_KEYS.CONVERSATIONS, uid), [freshConv]);
+    const existingSubjects = getStored<Subject[]>(userKey(STORAGE_KEYS.SUBJECTS, uid), []);
+    if (existingSubjects.length === 0) {
+      setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), INITIAL_SUBJECTS);
+      setStored(userKey(STORAGE_KEYS.TOPICS, uid), INITIAL_TOPICS);
+    }
 
-    // 5. Clean up any leftover legacy un-scoped test keys in localStorage
-    localStorage.removeItem(STORAGE_KEYS.SUBJECTS);
-    localStorage.removeItem(STORAGE_KEYS.TOPICS);
-    localStorage.removeItem(STORAGE_KEYS.MATERIALS);
-    localStorage.removeItem(STORAGE_KEYS.STUDY_PLANS);
-    localStorage.removeItem(STORAGE_KEYS.WEAK_TOPICS);
-    localStorage.removeItem(STORAGE_KEYS.QUIZ_ATTEMPTS);
-    localStorage.removeItem(STORAGE_KEYS.ANALYZED_PDFS);
-    localStorage.removeItem(STORAGE_KEYS.CONVERSATIONS);
+    const existingTasks = getStored<StudyPlanTask[]>(userKey(STORAGE_KEYS.STUDY_PLANS, uid), []);
+    if (existingTasks.length === 0) {
+      setStored(userKey(STORAGE_KEYS.STUDY_PLANS, uid), []);
+    }
+
+    const existingWeak = getStored<WeakTopic[]>(userKey(STORAGE_KEYS.WEAK_TOPICS, uid), []);
+    if (existingWeak.length === 0) {
+      setStored(userKey(STORAGE_KEYS.WEAK_TOPICS, uid), []);
+    }
+
+    const existingMaterials = getStored<StudyMaterial[]>(userKey(STORAGE_KEYS.MATERIALS, uid), []);
+    if (existingMaterials.length === 0) {
+      setStored(userKey(STORAGE_KEYS.MATERIALS, uid), []);
+    }
+
+    const existingPdfs = getStored<AnalyzedPDFRecord[]>(userKey(STORAGE_KEYS.ANALYZED_PDFS, uid), []);
+    if (existingPdfs.length === 0) {
+      setStored(userKey(STORAGE_KEYS.ANALYZED_PDFS, uid), []);
+    }
+
+    const existingProgress = getStored<Record<string, number>>(userKey('studysphere_user_progress', uid), {});
+    if (Object.keys(existingProgress).length === 0) {
+      setStored(userKey('studysphere_user_progress', uid), {});
+    }
+
+    // 4. AI Conversations
+    const existingConvs = getStored<AIConversation[]>(userKey(STORAGE_KEYS.CONVERSATIONS, uid), []);
+    if (existingConvs.length === 0) {
+      const freshConv: AIConversation = {
+        id: `conv_${emailKey}_${Date.now()}`,
+        userId: profile.id,
+        title: 'Study Assistant Session',
+        updatedAt: new Date().toISOString(),
+        messages: [],
+      };
+      setStored(userKey(STORAGE_KEYS.CONVERSATIONS, uid), [freshConv]);
+    }
   },
 
   getSubjects(customUserId?: string): Subject[] {
@@ -888,16 +995,17 @@ export const DataStore = {
     const longestStreak = Math.max(activeStreak, attempts.length > 0 ? 14 : 0);
 
     const quizAccuracyAvg = attempts.length > 0
-      ? Math.round(attempts.reduce((acc, a) => acc + a.scorePercentage, 0) / attempts.length)
+      ? Math.round(attempts.reduce((acc, a) => acc + (a.scorePercentage || (a as any).percentage || 0), 0) / attempts.length)
       : 0;
 
     const completedTasksCount = tasks.filter((t) => t.isCompleted).length;
-    const masteredTopicsCount = new Set(attempts.filter((a) => a.scorePercentage >= 60).map((a) => a.topicTitle)).size;
+    const masteredTopicsCount = new Set(attempts.filter((a) => (a.scorePercentage || (a as any).percentage || 0) >= 60).map((a) => a.topicTitle)).size;
     const totalTopicsCount = subjects.reduce((acc, s) => acc + (s.topicCount || 10), 0);
     const topicsCompleted = Math.min(totalTopicsCount, completedTasksCount + masteredTopicsCount);
 
     return {
       weeklyStudyHours: totalHours > 0 ? totalHours : 0,
+      totalHours: totalHours > 0 ? totalHours : 0,
       activeStreak,
       longestStreak,
       quizAccuracyAvg,

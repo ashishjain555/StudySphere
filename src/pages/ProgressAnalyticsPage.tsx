@@ -112,7 +112,7 @@ export const ProgressAnalyticsPage: React.FC = () => {
         <TiltCard3D maxTilt={4}>
           <div className="p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 text-center space-y-1 h-full flex flex-col justify-center">
             <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono">
-              {stats.totalHours || stats.weeklyStudyHours}h
+              {stats.weeklyStudyHours.toFixed(1)}h
             </div>
             <div className="text-xs text-slate-400 font-medium">Study Hours Logged</div>
           </div>
