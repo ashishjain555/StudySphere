@@ -18,7 +18,7 @@ interface AuthContextType {
   switchRole: (role: UserRole) => void;
   resendVerification: (email: string) => Promise<{ success: boolean; error?: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-  loginWithGoogleIdToken: (idToken: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogleIdToken: (idToken: string, nonce?: string) => Promise<{ success: boolean; error?: string }>;
   updateUserProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
 }
 
@@ -666,15 +666,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   /**
    * Native Google Identity Services (ID Token) authentication without supabase.co redirect
    */
-  const loginWithGoogleIdToken = async (idToken: string): Promise<{ success: boolean; error?: string }> => {
+  const loginWithGoogleIdToken = async (idToken: string, nonce?: string): Promise<{ success: boolean; error?: string }> => {
     if (isSupabaseConfigured) {
       try {
-        const { error } = await supabase.auth.signInWithIdToken({
+        const credentials: { provider: 'google'; token: string; nonce?: string } = {
           provider: 'google',
           token: idToken,
-        });
+        };
+        if (nonce) {
+          credentials.nonce = nonce;
+        }
+        const { data, error } = await supabase.auth.signInWithIdToken(credentials);
         if (error) {
           return { success: false, error: error.message };
+        }
+        if (data?.user) {
+          handleAuthenticatedUser(data.user);
         }
         return { success: true };
       } catch (err: any) {
