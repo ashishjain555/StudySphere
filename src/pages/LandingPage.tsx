@@ -453,7 +453,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">Workflow</a>
             <button onClick={() => setIsAboutOpen(true)} className="hover:text-white transition-colors cursor-pointer">About Us</button>
-            <button onClick={() => setIsPrivacyOpen(true)} className="hover:text-white transition-colors cursor-pointer">Privacy Policy</button>
+            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Terms</a>
             <button onClick={() => setIsFeedbackOpen(true)} className="hover:text-indigo-400 text-indigo-300 font-medium transition-colors cursor-pointer">Give Feedback</button>
             <button onClick={() => onNavigate('/login')} className="hover:text-white transition-colors cursor-pointer">Sign In</button>
           </div>

@@ -1477,6 +1477,21 @@ app.use('/api', (req, res) => {
   });
 });
 
+// Google OAuth & Legal Documentation Routes
+app.get(['/privacy-policy', '/privacy', '/privacy.html'], (req, res) => {
+  const filePath = path.resolve(__dirname, '../public/privacy-policy.html');
+  res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(filePath);
+});
+
+app.get(['/terms', '/terms-of-service', '/terms.html'], (req, res) => {
+  const filePath = path.resolve(__dirname, '../public/terms.html');
+  res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(filePath);
+});
+
 // List of legitimate SPA client routes (exact or prefix)
 const KNOWN_SPA_ROUTES = new Set([
   '/',
@@ -1484,6 +1499,8 @@ const KNOWN_SPA_ROUTES = new Set([
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/privacy-policy',
+  '/terms',
   '/app',
 ]);
 

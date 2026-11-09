@@ -250,6 +250,27 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onNavigate, onSuccess }) =
             Create Free Account
           </button>
         </div>
+
+        {/* Public Legal Links for Google Compliance & User Trust */}
+        <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-center gap-3 text-[11px] text-slate-500">
+          <a
+            href="/privacy-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-slate-300 transition-colors"
+          >
+            Privacy Policy
+          </a>
+          <span>&bull;</span>
+          <a
+            href="/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-slate-300 transition-colors"
+          >
+            Terms of Service
+          </a>
+        </div>
       </div>
     </div>
   );
