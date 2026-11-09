@@ -650,15 +650,19 @@ export const PDFAnalyzerPage: React.FC<PDFAnalyzerPageProps> = ({
           </div>
         </div>
 
-        <div className="p-4 sm:p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+        <div
+          onClick={() => setSelectedLang((prev) => (prev === 'english' ? 'hinglish' : 'english'))}
+          className="p-4 sm:p-5 rounded-2xl glass-card border border-slate-800 bg-slate-900/60 flex items-center gap-3.5 cursor-pointer hover:border-emerald-500/40 transition-all group"
+          title="Click to toggle language mode"
+        >
+          <div className="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 group-hover:scale-105 transition-transform">
             <Languages className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-sm sm:text-base font-bold text-white uppercase font-mono">
-              {language === 'hinglish' ? 'Hinglish' : 'English'}
+            <div className="text-sm sm:text-base font-bold text-white uppercase font-mono group-hover:text-emerald-300 transition-colors">
+              {selectedLang === 'hinglish' ? 'Hinglish (Mix)' : 'English'}
             </div>
-            <div className="text-xs text-slate-400">Summary Language</div>
+            <div className="text-xs text-slate-400">Language (Click to switch)</div>
           </div>
         </div>
       </div>
