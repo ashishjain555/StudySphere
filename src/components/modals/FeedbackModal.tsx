@@ -98,29 +98,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       console.warn('Backend feedback dispatch notification:', err);
     }
 
-    // 3. Direct browser dispatch to FormSubmit (auto-delivers to studysphere137@gmail.com without opening any email client)
-    try {
-      await fetch('https://formsubmit.co/ajax/studysphere137@gmail.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          name: `StudySphere Student (${category})`,
-          email: studentEmail,
-          rating: `${rating} / 5 Stars`,
-          category,
-          message: message.trim(),
-          _subject: `[StudySphere Feedback] ${rating}★ Review (${category.toUpperCase()})`,
-          _captcha: 'false',
-        }),
-      });
-    } catch (err) {
-      // Backend handles delivery
-    }
-
-    // 4. Optional client-side direct Web3Forms forward if configured
+    // 3. Client-side direct Web3Forms forward if configured (Zero activation emails)
     const clientWeb3Key = (import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY;
     if (clientWeb3Key) {
       try {

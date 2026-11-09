@@ -1206,39 +1206,6 @@ app.post('/api/feedback', async (req, res) => {
       }
     }
 
-    // D. FormSubmit Direct Delivery to studysphere137@gmail.com
-    if (!emailDelivered) {
-      try {
-        const fsRes = await fetch('https://formsubmit.co/ajax/studysphere137@gmail.com', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Origin': 'https://studysphere-ai-rktl.onrender.com',
-            'Referer': 'https://studysphere-ai-rktl.onrender.com',
-          },
-          body: JSON.stringify({
-            name: `StudySphere Student (${feedbackRecord.category})`,
-            email: feedbackRecord.email,
-            rating: `${feedbackRecord.rating} / 5 Stars`,
-            category: feedbackRecord.category,
-            message: feedbackRecord.message,
-            _subject: `[StudySphere Feedback] ${feedbackRecord.rating}★ Review (${feedbackRecord.category.toUpperCase()})`,
-            _captcha: 'false',
-            submittedAt: feedbackRecord.receivedAt,
-          }),
-        });
-        const fsData = await fsRes.json().catch(() => ({}));
-        if (fsData && (fsData.success === 'true' || fsData.success === true)) {
-          emailDelivered = true;
-          providerUsed = 'formsubmit';
-          console.log('✅ Feedback successfully dispatched to studysphere137@gmail.com via FormSubmit');
-        }
-      } catch (err) {
-        console.warn('⚠️ FormSubmit delivery notice:', err.message);
-      }
-    }
-
     return res.json({
       success: true,
       message: 'Feedback securely received and saved.',
