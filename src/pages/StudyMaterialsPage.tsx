@@ -35,8 +35,14 @@ interface StudyMaterialsPageProps {
 
 export const StudyMaterialsPage: React.FC<StudyMaterialsPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const [materials, setMaterials] = useState<StudyMaterial[]>(() => DataStore.getMaterials());
-  const [subjects] = useState<Subject[]>(() => DataStore.getSubjects());
+  const [materials, setMaterials] = useState<StudyMaterial[]>(() => {
+    const m = DataStore.getMaterials();
+    return Array.isArray(m) ? m : [];
+  });
+  const [subjects] = useState<Subject[]>(() => {
+    const s = DataStore.getSubjects();
+    return Array.isArray(s) ? s : [];
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>('all');
@@ -62,7 +68,8 @@ export const StudyMaterialsPage: React.FC<StudyMaterialsPageProps> = ({ onNaviga
   // Real-time synchronization when materials update
   useEffect(() => {
     const handleUpdate = () => {
-      setMaterials(DataStore.getMaterials());
+      const m = DataStore.getMaterials();
+      setMaterials(Array.isArray(m) ? m : []);
     };
     window.addEventListener('studysphere:materials_update', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -123,14 +130,16 @@ export const StudyMaterialsPage: React.FC<StudyMaterialsPageProps> = ({ onNaviga
     return `${(totalBytes / (1024 * 1024)).toFixed(1)} MB`;
   }, [materials]);
 
-  const coveredSubjectsCount = useMemo(() => {
-    return new Set(materials.map((m) => m.subjectId || m.subjectName)).size;
-  }, [materials]);
+  const safeMaterials = Array.isArray(materials) ? materials : [];
 
-  const pdfCount = useMemo(() => materials.filter((m) => m.fileType === 'pdf').length, [materials]);
-  const notesCount = useMemo(() => materials.filter((m) => m.fileType === 'notes').length, [materials]);
-  const qpCount = useMemo(() => materials.filter((m) => m.fileType === 'question_paper').length, [materials]);
-  const assignmentCount = useMemo(() => materials.filter((m) => m.fileType === 'assignment').length, [materials]);
+  const coveredSubjectsCount = useMemo(() => {
+    return new Set(safeMaterials.map((m) => m && (m.subjectId || m.subjectName))).size;
+  }, [safeMaterials]);
+
+  const pdfCount = useMemo(() => safeMaterials.filter((m) => m && m.fileType === 'pdf').length, [safeMaterials]);
+  const notesCount = useMemo(() => safeMaterials.filter((m) => m && m.fileType === 'notes').length, [safeMaterials]);
+  const qpCount = useMemo(() => safeMaterials.filter((m) => m && m.fileType === 'question_paper').length, [safeMaterials]);
+  const assignmentCount = useMemo(() => safeMaterials.filter((m) => m && m.fileType === 'assignment').length, [safeMaterials]);
 
   /**
    * Pre-load Blob URLs for all stored materials on mount.
@@ -405,8 +414,9 @@ export const StudyMaterialsPage: React.FC<StudyMaterialsPageProps> = ({ onNaviga
 
   // Filter & Sort Materials
   const filtered = useMemo(() => {
-    return materials
+    return safeMaterials
       .filter((m) => {
+        if (!m) return false;
         const subjectLabel = getSubjectLabel(m).toLowerCase();
         const query = searchQuery.toLowerCase().trim();
         const matchesSearch =

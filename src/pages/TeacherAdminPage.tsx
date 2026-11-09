@@ -26,14 +26,21 @@ import { useAuth } from '../context/AuthContext';
 
 export const TeacherAdminPage: React.FC = () => {
   const { user } = useAuth();
-  const [materials, setMaterials] = useState<StudyMaterial[]>(() => DataStore.getMaterials());
-  const [subjects] = useState<Subject[]>(() => DataStore.getSubjects());
+  const [materials, setMaterials] = useState<StudyMaterial[]>(() => {
+    const m = DataStore.getMaterials();
+    return Array.isArray(m) ? m : [];
+  });
+  const [subjects] = useState<Subject[]>(() => {
+    const s = DataStore.getSubjects();
+    return Array.isArray(s) ? s : [];
+  });
   const [blobUrlMap, setBlobUrlMap] = useState<Record<string, string>>({});
   const [materialToDelete, setMaterialToDelete] = useState<StudyMaterial | null>(null);
 
   useEffect(() => {
     const handleUpdate = () => {
-      setMaterials(DataStore.getMaterials());
+      const m = DataStore.getMaterials();
+      setMaterials(Array.isArray(m) ? m : []);
     };
     window.addEventListener('studysphere:materials_update', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -296,13 +303,16 @@ export const TeacherAdminPage: React.FC = () => {
     }
   };
 
+  const safeMaterials = Array.isArray(materials) ? materials : [];
+
   // Filtered materials
-  const filteredMaterials = materials.filter((mat) => {
+  const filteredMaterials = safeMaterials.filter((mat) => {
+    if (!mat) return false;
     const query = searchQuery.toLowerCase();
     const subj = getSubjectName(mat).toLowerCase();
     const matchesSearch =
-      mat.title.toLowerCase().includes(query) ||
-      mat.description.toLowerCase().includes(query) ||
+      (mat.title && mat.title.toLowerCase().includes(query)) ||
+      (mat.description && mat.description.toLowerCase().includes(query)) ||
       subj.includes(query);
 
     const matchesStatus =
@@ -317,8 +327,8 @@ export const TeacherAdminPage: React.FC = () => {
     return matchesSearch && matchesStatus && matchesType;
   });
 
-  const publishedCount = materials.filter((m) => m.isPublished).length;
-  const draftCount = materials.length - publishedCount;
+  const publishedCount = safeMaterials.filter((m) => m && m.isPublished).length;
+  const draftCount = safeMaterials.length - publishedCount;
 
   return (
     <div className="space-y-8 animate-fadeIn">

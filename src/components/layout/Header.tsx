@@ -49,13 +49,17 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleMobileSidebar,
 }) => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<TeacherNotification[]>([]);
+  const [notifications, setNotifications] = useState<TeacherNotification[]>(() => {
+    const n = DataStore.getNotifications();
+    return Array.isArray(n) ? n : [];
+  });
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadNotifs = () => {
-      setNotifications(DataStore.getNotifications());
+      const n = DataStore.getNotifications();
+      setNotifications(Array.isArray(n) ? n : []);
     };
     loadNotifs();
 
@@ -92,7 +96,8 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, [isNotifOpen]);
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const safeNotifs = Array.isArray(notifications) ? notifications : [];
+  const unreadCount = safeNotifs.filter((n) => n && !n.isRead).length;
 
   const handleMarkAllRead = () => {
     DataStore.markAllNotificationsAsRead();
@@ -234,8 +239,8 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Notification List */}
               <div className="max-h-80 sm:max-h-96 overflow-y-auto divide-y divide-gray-800/60">
-                {notifications.length > 0 ? (
-                  notifications.map((notif) => (
+                {safeNotifs.length > 0 ? (
+                  safeNotifs.map((notif) => (
                     <div
                       key={notif.id}
                       onClick={() => handleNotificationClick(notif)}
@@ -300,7 +305,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Dropdown Footer */}
               <div className="p-3 border-t border-gray-800/80 bg-gray-900/60 flex items-center justify-between text-xs">
                 <span className="text-[11px] text-gray-400">
-                  {notifications.length} {notifications.length === 1 ? 'notice' : 'notices'}
+                  {safeNotifs.length} {safeNotifs.length === 1 ? 'notice' : 'notices'}
                 </span>
                 <button
                   onClick={() => {

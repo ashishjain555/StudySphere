@@ -34,9 +34,12 @@ import { DataStore } from '../lib/dataStore';
 import { TiltCard3D } from '../components/3d/TiltCard3D';
 
 export const ProgressAnalyticsPage: React.FC = () => {
-  const subjects = DataStore.getSubjects();
-  const quizAttempts = DataStore.getQuizAttempts();
-  const tasks = DataStore.getTasks();
+  const rawSubjects = DataStore.getSubjects();
+  const subjects = Array.isArray(rawSubjects) ? rawSubjects : [];
+  const rawAttempts = DataStore.getQuizAttempts();
+  const quizAttempts = Array.isArray(rawAttempts) ? rawAttempts : [];
+  const rawTasks = DataStore.getTasks();
+  const tasks = Array.isArray(rawTasks) ? rawTasks : [];
   const stats = DataStore.getStatsSummary();
 
   // Dynamically compute weekly hours from completed tasks & quiz attempts
@@ -44,7 +47,7 @@ export const ProgressAnalyticsPage: React.FC = () => {
   const dayMap: Record<string, number> = { Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0, Sun: 0 };
 
   tasks
-    .filter((t) => t.isCompleted)
+    .filter((t) => t && t.isCompleted)
     .forEach((t) => {
       const d = new Date(t.dueDate || t.createdAt);
       if (!isNaN(d.getTime())) {
@@ -54,6 +57,7 @@ export const ProgressAnalyticsPage: React.FC = () => {
     });
 
   quizAttempts.forEach((qa) => {
+    if (!qa) return;
     const d = new Date(qa.completedAt || qa.date || '');
     if (!isNaN(d.getTime())) {
       const name = dayNames[d.getDay()];

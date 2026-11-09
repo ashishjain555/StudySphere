@@ -42,11 +42,26 @@ interface SubjectLibraryPageProps {
 }
 
 export const SubjectLibraryPage: React.FC<SubjectLibraryPageProps> = ({ onNavigate }) => {
-  const [subjects, setSubjects] = useState<Subject[]>(() => DataStore.getSubjects());
-  const [allTopics, setAllTopics] = useState<Topic[]>(() => DataStore.getTopics());
-  const [allMaterials, setAllMaterials] = useState<StudyMaterial[]>(() => DataStore.getMaterials());
-  const [allQuizzes, setAllQuizzes] = useState<QuizAttempt[]>(() => DataStore.getQuizAttempts());
-  const [allWeakTopics, setAllWeakTopics] = useState<WeakTopic[]>(() => DataStore.getWeakTopics());
+  const [subjects, setSubjects] = useState<Subject[]>(() => {
+    const s = DataStore.getSubjects();
+    return Array.isArray(s) ? s : [];
+  });
+  const [allTopics, setAllTopics] = useState<Topic[]>(() => {
+    const t = DataStore.getTopics();
+    return Array.isArray(t) ? t : [];
+  });
+  const [allMaterials, setAllMaterials] = useState<StudyMaterial[]>(() => {
+    const m = DataStore.getMaterials();
+    return Array.isArray(m) ? m : [];
+  });
+  const [allQuizzes, setAllQuizzes] = useState<QuizAttempt[]>(() => {
+    const q = DataStore.getQuizAttempts();
+    return Array.isArray(q) ? q : [];
+  });
+  const [allWeakTopics, setAllWeakTopics] = useState<WeakTopic[]>(() => {
+    const w = DataStore.getWeakTopics();
+    return Array.isArray(w) ? w : [];
+  });
 
   // Search, Filter, Sort & View states
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,11 +90,16 @@ export const SubjectLibraryPage: React.FC<SubjectLibraryPageProps> = ({ onNaviga
   // Synchronize state when store updates
   useEffect(() => {
     const handleUpdate = () => {
-      setSubjects(DataStore.getSubjects());
-      setAllTopics(DataStore.getTopics());
-      setAllMaterials(DataStore.getMaterials());
-      setAllQuizzes(DataStore.getQuizAttempts());
-      setAllWeakTopics(DataStore.getWeakTopics());
+      const s = DataStore.getSubjects();
+      setSubjects(Array.isArray(s) ? s : []);
+      const t = DataStore.getTopics();
+      setAllTopics(Array.isArray(t) ? t : []);
+      const m = DataStore.getMaterials();
+      setAllMaterials(Array.isArray(m) ? m : []);
+      const q = DataStore.getQuizAttempts();
+      setAllQuizzes(Array.isArray(q) ? q : []);
+      const w = DataStore.getWeakTopics();
+      setAllWeakTopics(Array.isArray(w) ? w : []);
     };
     window.addEventListener('studysphere:materials_update', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -89,32 +109,37 @@ export const SubjectLibraryPage: React.FC<SubjectLibraryPageProps> = ({ onNaviga
     };
   }, []);
 
+  const safeSubjects = Array.isArray(subjects) ? subjects : [];
+  const safeTopics = Array.isArray(allTopics) ? allTopics : [];
+  const safeMaterials = Array.isArray(allMaterials) ? allMaterials : [];
+  const safeWeakTopics = Array.isArray(allWeakTopics) ? allWeakTopics : [];
+
   // Real Aggregated Metrics computed directly from DataStore
   const totalChapters = useMemo(() => {
-    return subjects.reduce((sum, s) => {
-      const sTopics = allTopics.filter((t) => t.subjectId === s.id);
+    return safeSubjects.reduce((sum, s) => {
+      const sTopics = safeTopics.filter((t) => t && t.subjectId === s.id);
       const uniqueUnits = new Set(sTopics.map((t) => `${t.documentId || 'core'}_${t.unitNumber}`)).size;
       return sum + (uniqueUnits || s.unitsCount || 1);
     }, 0);
-  }, [subjects, allTopics]);
+  }, [safeSubjects, safeTopics]);
 
   const totalTopicsCount = useMemo(() => {
-    return subjects.reduce((sum, s) => {
-      const count = allTopics.filter((t) => t.subjectId === s.id).length;
+    return safeSubjects.reduce((sum, s) => {
+      const count = safeTopics.filter((t) => t && t.subjectId === s.id).length;
       return sum + (count || s.topicCount || 0);
     }, 0);
-  }, [subjects, allTopics]);
+  }, [safeSubjects, safeTopics]);
 
   const totalDocsCount = useMemo(() => {
-    const directDocs = subjects.reduce((sum, s) => sum + (s.documents?.length || 0), 0);
-    return directDocs + allMaterials.length;
-  }, [subjects, allMaterials]);
+    const directDocs = safeSubjects.reduce((sum, s) => sum + (s.documents?.length || 0), 0);
+    return directDocs + safeMaterials.length;
+  }, [safeSubjects, safeMaterials]);
 
   const averageProgress = useMemo(() => {
-    if (subjects.length === 0) return 0;
-    const total = subjects.reduce((sum, s) => sum + (s.progressPercentage || 0), 0);
-    return Math.round(total / subjects.length);
-  }, [subjects]);
+    if (safeSubjects.length === 0) return 0;
+    const total = safeSubjects.reduce((sum, s) => sum + (s.progressPercentage || 0), 0);
+    return Math.round(total / safeSubjects.length);
+  }, [safeSubjects]);
 
   const confirmDeleteSubject = () => {
     if (!subjectToDelete) return;

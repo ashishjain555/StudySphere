@@ -48,17 +48,34 @@ interface DashboardPageProps {
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskAI }) => {
   const { user } = useAuth();
 
-  const [subjects] = useState<Subject[]>(() => DataStore.getSubjects().slice(0, 4));
-  const [tasks, setTasks] = useState<StudyPlanTask[]>(() => DataStore.getTasks());
-  const [weakTopics] = useState<WeakTopic[]>(() => DataStore.getWeakTopics().slice(0, 2));
-  const [materials, setMaterials] = useState<StudyMaterial[]>(() => DataStore.getMaterials().slice(0, 3));
-  const [quizAttempts] = useState(() => DataStore.getQuizAttempts());
+  const [subjects] = useState<Subject[]>(() => {
+    const s = DataStore.getSubjects();
+    return Array.isArray(s) ? s.slice(0, 4) : [];
+  });
+  const [tasks, setTasks] = useState<StudyPlanTask[]>(() => {
+    const t = DataStore.getTasks();
+    return Array.isArray(t) ? t : [];
+  });
+  const [weakTopics] = useState<WeakTopic[]>(() => {
+    const w = DataStore.getWeakTopics();
+    return Array.isArray(w) ? w.slice(0, 2) : [];
+  });
+  const [materials, setMaterials] = useState<StudyMaterial[]>(() => {
+    const m = DataStore.getMaterials();
+    return Array.isArray(m) ? m.slice(0, 3) : [];
+  });
+  const [quizAttempts] = useState(() => {
+    const q = DataStore.getQuizAttempts();
+    return Array.isArray(q) ? q : [];
+  });
   const [quickPrompt, setQuickPrompt] = useState('');
 
   useEffect(() => {
     const handleUpdate = () => {
-      setMaterials(DataStore.getMaterials().slice(0, 3));
-      setTasks(DataStore.getTasks());
+      const m = DataStore.getMaterials();
+      setMaterials(Array.isArray(m) ? m.slice(0, 3) : []);
+      const t = DataStore.getTasks();
+      setTasks(Array.isArray(t) ? t : []);
     };
     window.addEventListener('studysphere:materials_update', handleUpdate);
     window.addEventListener('storage', handleUpdate);
@@ -70,6 +87,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
 
   // Compute Weekly Study Hours dynamically from real activity
   const weeklyHoursData = useMemo(() => {
+    const safeTasks = Array.isArray(tasks) ? tasks : [];
+    const safeAttempts = Array.isArray(quizAttempts) ? quizAttempts : [];
+
     const today = new Date();
     const dayOfWeek = today.getDay(); // 0: Sun, 1: Mon...
     const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -84,15 +104,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
       const dateStr = d.toISOString().split('T')[0];
 
       // Sum task duration for completed tasks
-      const taskHours = tasks
-        .filter((t) => t.isCompleted && t.dueDate && t.dueDate.startsWith(dateStr))
+      const taskHours = safeTasks
+        .filter((t) => t && t.isCompleted && t.dueDate && typeof t.dueDate === 'string' && t.dueDate.startsWith(dateStr))
         .reduce((sum, t) => sum + (t.duration ? t.duration / 60 : 0.75), 0);
 
       // Add 0.5 hours per quiz attempt
-      const quizHours = quizAttempts
+      const quizHours = safeAttempts
         .filter((q: any) => {
-          const qDate = q.completedAt || q.date;
-          return qDate && qDate.startsWith(dateStr);
+          const qDate = q?.completedAt || q?.date;
+          return qDate && typeof qDate === 'string' && qDate.startsWith(dateStr);
         })
         .length * 0.5;
 
@@ -108,14 +128,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
 
   // Academic Progress Metrics
   const stats = useMemo(() => DataStore.getStatsSummary(), [tasks, quizAttempts, subjects]);
-  const completedTasks = tasks.filter((t) => t.isCompleted);
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const completedTasks = safeTasks.filter((t) => t && t.isCompleted);
   const calculatedWeeklyHours = weeklyHoursData.reduce((acc, curr) => acc + curr.hours, 0);
   const displayHours = (calculatedWeeklyHours > 0 ? calculatedWeeklyHours.toFixed(1) : stats.weeklyStudyHours.toFixed(1));
   const totalWeeklyHours = displayHours;
-  const completionRate = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 100;
+  const completionRate = safeTasks.length > 0 ? Math.round((completedTasks.length / safeTasks.length) * 100) : 100;
 
   const handleToggleTask = (taskId: string) => {
-    const updated = tasks.map((t) => {
+    const currentTasks = Array.isArray(tasks) ? tasks : [];
+    const updated = currentTasks.map((t) => {
       if (t.id === taskId) {
         const nextState = !t.isCompleted;
         if (nextState) {

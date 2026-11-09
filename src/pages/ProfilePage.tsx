@@ -88,10 +88,10 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   // Platform Metrics
-  const subjectsCount = DataStore.getSubjects().length;
-  const quizzesCount = DataStore.getQuizAttempts().length;
-  const tasksCount = DataStore.getTasks().length;
-  const weakTopicsCount = DataStore.getWeakTopics().length;
+  const subjectsCount = (Array.isArray(DataStore.getSubjects()) ? DataStore.getSubjects() : []).length;
+  const quizzesCount = (Array.isArray(DataStore.getQuizAttempts()) ? DataStore.getQuizAttempts() : []).length;
+  const tasksCount = (Array.isArray(DataStore.getTasks()) ? DataStore.getTasks() : []).length;
+  const weakTopicsCount = (Array.isArray(DataStore.getWeakTopics()) ? DataStore.getWeakTopics() : []).length;
 
   const handleCancelEdit = () => {
     setFullName(user?.fullName || '');

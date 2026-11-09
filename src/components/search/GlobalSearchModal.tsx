@@ -45,8 +45,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     const items: SearchResultItem[] = [];
 
     // Search Subjects
-    DataStore.getSubjects().forEach((s) => {
-      if (s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)) {
+    (DataStore.getSubjects() || []).forEach((s) => {
+      if (!s) return;
+      if (
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.code && s.code.toLowerCase().includes(q)) ||
+        (s.description && s.description.toLowerCase().includes(q))
+      ) {
         items.push({
           id: s.id,
           type: 'subject',
@@ -59,8 +64,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     });
 
     // Search Topics & Notes
-    DataStore.getTopics().forEach((t) => {
-      if (t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q) || t.unitName.toLowerCase().includes(q)) {
+    (DataStore.getTopics() || []).forEach((t) => {
+      if (!t) return;
+      if (
+        (t.title && t.title.toLowerCase().includes(q)) ||
+        (t.description && t.description.toLowerCase().includes(q)) ||
+        (t.unitName && t.unitName.toLowerCase().includes(q))
+      ) {
         items.push({
           id: t.id,
           type: 'topic',
@@ -73,8 +83,12 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     });
 
     // Search Study Materials
-    DataStore.getMaterials().forEach((m) => {
-      if (m.title.toLowerCase().includes(q) || m.description.toLowerCase().includes(q)) {
+    (DataStore.getMaterials() || []).forEach((m) => {
+      if (!m) return;
+      if (
+        (m.title && m.title.toLowerCase().includes(q)) ||
+        (m.description && m.description.toLowerCase().includes(q))
+      ) {
         items.push({
           id: m.id,
           type: 'pdf',

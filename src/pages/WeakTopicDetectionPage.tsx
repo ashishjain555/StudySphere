@@ -28,14 +28,21 @@ export const WeakTopicDetectionPage: React.FC<WeakTopicDetectionPageProps> = ({
   onNavigate,
   onAskAI,
 }) => {
-  const [weakTopics, setWeakTopics] = useState<WeakTopic[]>(() => DataStore.getWeakTopics());
-  const [subjects] = useState<Subject[]>(() => DataStore.getSubjects());
+  const [weakTopics, setWeakTopics] = useState<WeakTopic[]>(() => {
+    const w = DataStore.getWeakTopics();
+    return Array.isArray(w) ? w : [];
+  });
+  const [subjects] = useState<Subject[]>(() => {
+    const s = DataStore.getSubjects();
+    return Array.isArray(s) ? s : [];
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSeverity, setFilterSeverity] = useState<'all' | 'critical' | 'moderate' | 'improved'>('all');
 
   useEffect(() => {
     const handleUpdate = () => {
-      setWeakTopics(DataStore.getWeakTopics());
+      const w = DataStore.getWeakTopics();
+      setWeakTopics(Array.isArray(w) ? w : []);
     };
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('studysphere:data_update', handleUpdate);
@@ -45,32 +52,35 @@ export const WeakTopicDetectionPage: React.FC<WeakTopicDetectionPageProps> = ({
     };
   }, []);
 
+  const safeWeakTopics = Array.isArray(weakTopics) ? weakTopics : [];
+
   // Real Calculated Metrics (100% computed from DataStore)
   const totalErrors = useMemo(() => {
-    return weakTopics.reduce((sum, wt) => sum + (wt.errorCount || 1), 0);
-  }, [weakTopics]);
+    return safeWeakTopics.reduce((sum, wt) => sum + ((wt && wt.errorCount) || 1), 0);
+  }, [safeWeakTopics]);
 
   const criticalTopics = useMemo(() => {
-    return weakTopics.filter((wt) => wt.status === 'critical' || wt.accuracyPercentage < 50);
-  }, [weakTopics]);
+    return safeWeakTopics.filter((wt) => wt && (wt.status === 'critical' || wt.accuracyPercentage < 50));
+  }, [safeWeakTopics]);
 
   const moderateTopics = useMemo(() => {
-    return weakTopics.filter(
-      (wt) => wt.status !== 'critical' && wt.status !== 'improved' && wt.accuracyPercentage >= 50 && wt.accuracyPercentage < 70
+    return safeWeakTopics.filter(
+      (wt) => wt && (wt.status !== 'critical' && wt.status !== 'improved' && wt.accuracyPercentage >= 50 && wt.accuracyPercentage < 70)
     );
-  }, [weakTopics]);
+  }, [safeWeakTopics]);
 
   const improvedTopics = useMemo(() => {
-    return weakTopics.filter((wt) => wt.status === 'improved' || wt.accuracyPercentage >= 70);
-  }, [weakTopics]);
+    return safeWeakTopics.filter((wt) => wt && (wt.status === 'improved' || wt.accuracyPercentage >= 70));
+  }, [safeWeakTopics]);
 
   // Filtered List
   const filtered = useMemo(() => {
-    return weakTopics.filter((wt) => {
+    return safeWeakTopics.filter((wt) => {
+      if (!wt) return false;
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
         !q ||
-        wt.topicName.toLowerCase().includes(q) ||
+        (wt.topicName && wt.topicName.toLowerCase().includes(q)) ||
         (wt.subjectName && wt.subjectName.toLowerCase().includes(q));
 
       if (!matchesSearch) return false;

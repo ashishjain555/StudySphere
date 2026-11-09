@@ -36,55 +36,86 @@ import {
 
 function getStored<T>(key: string, defaultVal: T): T {
   try {
+    const isExpectingArray = Array.isArray(defaultVal);
     const item = localStorage.getItem(key);
+
     if (item !== null) {
-      const parsed = JSON.parse(item);
-      if (Array.isArray(parsed) ? parsed.length > 0 : (parsed !== null && parsed !== undefined)) {
-        return parsed;
+      try {
+        const parsed = JSON.parse(item);
+        if (isExpectingArray) {
+          if (Array.isArray(parsed)) {
+            return parsed as unknown as T;
+          } else {
+            // Self-healing: if an array was expected but corrupted object/primitive was stored, clear it!
+            localStorage.removeItem(key);
+          }
+        } else if (parsed !== null && parsed !== undefined) {
+          return parsed as unknown as T;
+        }
+      } catch {
+        localStorage.removeItem(key);
       }
     }
 
-    // Multi-tier Fallback & Auto-Migration:
-    // If the key is user-scoped (e.g. studysphere_quiz_attempts_ashishjain555_gmail_com):
-    // Check if there is data under the user's raw ID or legacy un-scoped key
+    // Multi-tier Fallback & Auto-Migration for user-scoped keys
     const rawUser = localStorage.getItem(STORAGE_KEYS.USER);
     if (rawUser) {
-      const u = JSON.parse(rawUser);
-      if (u && u.id) {
-        const lastUnderscore = key.lastIndexOf('_');
-        if (lastUnderscore > 0) {
-          const baseKey = key.slice(0, lastUnderscore);
-          // 1. Check raw u.id fallback
-          const altKey = `${baseKey}_${u.id}`;
-          if (altKey !== key) {
-            const altItem = localStorage.getItem(altKey);
-            if (altItem !== null) {
-              const altParsed = JSON.parse(altItem);
-              if (Array.isArray(altParsed) ? altParsed.length > 0 : Boolean(altParsed)) {
-                // Permanently migrate to the email-scoped key!
-                localStorage.setItem(key, altItem);
-                return altParsed;
+      try {
+        const u = JSON.parse(rawUser);
+        if (u && u.id) {
+          // Match against exact known STORAGE_KEYS
+          for (const baseKey of Object.values(STORAGE_KEYS)) {
+            if (key.startsWith(baseKey + '_')) {
+              // 1. Check raw u.id fallback
+              const altKey = `${baseKey}_${u.id}`;
+              if (altKey !== key) {
+                const altItem = localStorage.getItem(altKey);
+                if (altItem !== null) {
+                  try {
+                    const altParsed = JSON.parse(altItem);
+                    if (isExpectingArray) {
+                      if (Array.isArray(altParsed)) {
+                        localStorage.setItem(key, altItem);
+                        return altParsed as unknown as T;
+                      }
+                    } else if (altParsed !== null && altParsed !== undefined) {
+                      localStorage.setItem(key, altItem);
+                      return altParsed as unknown as T;
+                    }
+                  } catch {}
+                }
               }
-            }
-          }
-          // 2. Check legacy un-scoped baseKey fallback
-          const legacyItem = localStorage.getItem(baseKey);
-          if (legacyItem !== null) {
-            const legacyParsed = JSON.parse(legacyItem);
-            if (Array.isArray(legacyParsed) ? legacyParsed.length > 0 : Boolean(legacyParsed)) {
-              // Permanently migrate to the email-scoped key!
-              localStorage.setItem(key, legacyItem);
-              return legacyParsed;
+
+              // 2. Check legacy un-scoped baseKey fallback
+              const legacyItem = localStorage.getItem(baseKey);
+              if (legacyItem !== null) {
+                try {
+                  const legacyParsed = JSON.parse(legacyItem);
+                  if (isExpectingArray) {
+                    if (Array.isArray(legacyParsed)) {
+                      localStorage.setItem(key, legacyItem);
+                      return legacyParsed as unknown as T;
+                    }
+                  } else if (legacyParsed !== null && legacyParsed !== undefined) {
+                    localStorage.setItem(key, legacyItem);
+                    return legacyParsed as unknown as T;
+                  }
+                } catch {}
+              }
+              break;
             }
           }
         }
-      }
+      } catch {}
     }
 
-    return item !== null ? JSON.parse(item) : defaultVal;
+    if (isExpectingArray) {
+      return (Array.isArray(defaultVal) ? [...defaultVal] : []) as unknown as T;
+    }
+    return defaultVal;
   } catch (e) {
     console.error(`Error reading ${key} from localStorage`, e);
-    return defaultVal;
+    return isExpectingArray ? ([] as unknown as T) : defaultVal;
   }
 }
 
@@ -99,12 +130,13 @@ function setStored<T>(key: string, val: T): void {
       if (rawUser) {
         const u = JSON.parse(rawUser);
         if (u && u.id) {
-          const lastUnderscore = key.lastIndexOf('_');
-          if (lastUnderscore > 0) {
-            const baseKey = key.slice(0, lastUnderscore);
-            const altKey = `${baseKey}_${u.id}`;
-            if (altKey !== key) {
-              localStorage.setItem(altKey, serialized);
+          for (const baseKey of Object.values(STORAGE_KEYS)) {
+            if (key.startsWith(baseKey + '_')) {
+              const altKey = `${baseKey}_${u.id}`;
+              if (altKey !== key) {
+                localStorage.setItem(altKey, serialized);
+              }
+              break;
             }
           }
         }
@@ -671,8 +703,10 @@ export const DataStore = {
 
   getMaterials(): StudyMaterial[] {
     const uid = getCurrentUserId();
-    const userList = getStored<StudyMaterial[]>(userKey(STORAGE_KEYS.MATERIALS, uid), []);
-    const deletedIds = new Set(getStored<string[]>('studysphere_deleted_materials', []));
+    const rawList = getStored<StudyMaterial[]>(userKey(STORAGE_KEYS.MATERIALS, uid), []);
+    const userList = Array.isArray(rawList) ? rawList : [];
+    const rawDeleted = getStored<string[]>('studysphere_deleted_materials', []);
+    const deletedIds = new Set(Array.isArray(rawDeleted) ? rawDeleted : []);
 
     // Clear legacy global key so no old dummy materials leak across users
     try {
@@ -683,6 +717,7 @@ export const DataStore = {
     // excluding any demo or dummy materials (mat_1, mat_2, demo_*)
     const sanitized = userList
       .filter((m) => {
+        if (!m || !m.id) return false;
         if (deletedIds.has(m.id)) return false;
         if (m.id === 'mat_1' || m.id === 'mat_2' || m.id.startsWith('demo_')) return false;
         // If uploadedBy is tagged, verify it belongs to this user or current session
@@ -886,7 +921,8 @@ export const DataStore = {
       updatedAt: new Date().toISOString(),
       messages: [],
     };
-    return getStored<AIConversation[]>(userKey(STORAGE_KEYS.CONVERSATIONS), [defaultConv]);
+    const raw = getStored<AIConversation[]>(userKey(STORAGE_KEYS.CONVERSATIONS), [defaultConv]);
+    return Array.isArray(raw) ? raw : [defaultConv];
   },
   saveConversations(conversations: AIConversation[]): void {
     setStored(userKey(STORAGE_KEYS.CONVERSATIONS), conversations);
@@ -1011,9 +1047,12 @@ export const DataStore = {
   },
 
   getStatsSummary() {
-    const attempts = this.getQuizAttempts() || [];
-    const tasks = this.getTasks() || [];
-    const subjects = this.getSubjects() || [];
+    const rawAttempts = this.getQuizAttempts();
+    const attempts = Array.isArray(rawAttempts) ? rawAttempts : [];
+    const rawTasks = this.getTasks();
+    const tasks = Array.isArray(rawTasks) ? rawTasks : [];
+    const rawSubjects = this.getSubjects();
+    const subjects = Array.isArray(rawSubjects) ? rawSubjects : [];
 
     const taskHours = tasks.filter((t) => t && t.isCompleted).reduce((acc, t) => acc + ((t.durationMins || t.duration || 30) / 60), 0);
     const quizHours = attempts.reduce((acc, a) => acc + (a && a.timeTakenSeconds > 0 ? a.timeTakenSeconds / 3600 : 0.25), 0);
@@ -1044,13 +1083,15 @@ export const DataStore = {
 
   getNotifications(): TeacherNotification[] {
     const rawList = getStored<TeacherNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
-    const list = rawList.filter((n) => n.materialId !== 'mat_1' && n.materialId !== 'mat_2' && n.id !== 'notif_mat_1' && n.id !== 'notif_mat_2');
+    const safeList = Array.isArray(rawList) ? rawList : [];
+    const list = safeList.filter((n) => n && n.materialId !== 'mat_1' && n.materialId !== 'mat_2' && n.id !== 'notif_mat_1' && n.id !== 'notif_mat_2');
     return list;
   },
 
   addNotification(notif: TeacherNotification): void {
-    const list = getStored<TeacherNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
-    const filtered = list.filter((n) => n.id !== notif.id);
+    const rawList = getStored<TeacherNotification[]>(STORAGE_KEYS.NOTIFICATIONS, []);
+    const safeList = Array.isArray(rawList) ? rawList : [];
+    const filtered = safeList.filter((n) => n && n.id !== notif.id);
     const updated = [notif, ...filtered];
     setStored(STORAGE_KEYS.NOTIFICATIONS, updated);
     if (typeof window !== 'undefined') {

@@ -166,11 +166,20 @@ export const SubjectDetailPage: React.FC<SubjectDetailPageProps> = ({
   onNavigate,
   onAskAI,
 }) => {
-  const subjects = DataStore.getSubjects();
-  const foundSubject = subjects.find((s) => s.id === subjectId) || (subjects.length > 0 ? subjects[0] : null);
+  const rawSubjects = DataStore.getSubjects();
+  const subjects = Array.isArray(rawSubjects) ? rawSubjects : [];
+  const foundSubject = subjects.find((s) => s && s.id === subjectId) || (subjects.length > 0 ? subjects[0] : null);
   const [subject, setSubject] = useState<Subject | null>(foundSubject);
-  const [topics, setTopics] = useState<Topic[]>(() => (foundSubject ? DataStore.getTopics(foundSubject.id) : []));
-  const materials = foundSubject ? DataStore.getMaterials().filter((m) => m.subjectId === foundSubject.id) : [];
+  const [topics, setTopics] = useState<Topic[]>(() => {
+    if (!foundSubject) return [];
+    const t = DataStore.getTopics(foundSubject.id);
+    return Array.isArray(t) ? t : [];
+  });
+  const materials = useMemo(() => {
+    if (!foundSubject) return [];
+    const m = DataStore.getMaterials();
+    return Array.isArray(m) ? m.filter((item) => item && item.subjectId === foundSubject.id) : [];
+  }, [foundSubject]);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'notes' | 'materials'>('overview');
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);

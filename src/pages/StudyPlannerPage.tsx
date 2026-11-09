@@ -27,8 +27,14 @@ import { DataStore } from '../lib/dataStore';
 import { StudyPlanTask, Subject } from '../types';
 
 export const StudyPlannerPage: React.FC = () => {
-  const [tasks, setTasks] = useState<StudyPlanTask[]>(() => DataStore.getTasks());
-  const [subjects] = useState<Subject[]>(() => DataStore.getSubjects());
+  const [tasks, setTasks] = useState<StudyPlanTask[]>(() => {
+    const t = DataStore.getTasks();
+    return Array.isArray(t) ? t : [];
+  });
+  const [subjects] = useState<Subject[]>(() => {
+    const s = DataStore.getSubjects();
+    return Array.isArray(s) ? s : [];
+  });
   const [activeView, setActiveView] = useState<'today' | 'week' | 'calendar' | 'all'>('today');
   const [selectedSubjectFilter, setSelectedSubjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
@@ -51,11 +57,13 @@ export const StudyPlannerPage: React.FC = () => {
   const [taskToDelete, setTaskToDelete] = useState<StudyPlanTask | null>(null);
 
   // Weak topics for smart recommendations
-  const weakTopics = DataStore.getWeakTopics();
+  const rawWeak = DataStore.getWeakTopics();
+  const weakTopics = Array.isArray(rawWeak) ? rawWeak : [];
   const topWeakTopic = weakTopics.length > 0 ? weakTopics[0] : null;
 
   const handleToggleTask = (taskId: string) => {
-    const updated = tasks.map((t) => {
+    const currentTasks = Array.isArray(tasks) ? tasks : [];
+    const updated = currentTasks.map((t) => {
       if (t.id === taskId) {
         const nextCompleted = !t.isCompleted;
         if (nextCompleted) {
@@ -161,8 +169,11 @@ export const StudyPlannerPage: React.FC = () => {
   today.setHours(0, 0, 0, 0);
   const todayStr = new Date().toISOString().split('T')[0];
 
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+
   // Filtering tasks
-  const filteredTasks = tasks.filter((t) => {
+  const filteredTasks = safeTasks.filter((t) => {
+    if (!t) return false;
     // Subject filter
     if (selectedSubjectFilter !== 'all' && t.subjectId !== selectedSubjectFilter) {
       return false;
@@ -186,7 +197,7 @@ export const StudyPlannerPage: React.FC = () => {
     return true; // 'calendar' or 'all'
   });
 
-  const selectedDateTasks = tasks.filter((t) => t.dueDate === selectedCalendarDate);
+  const selectedDateTasks = safeTasks.filter((t) => t && t.dueDate === selectedCalendarDate);
 
   const formattedSelectedDate = (() => {
     if (!selectedCalendarDate) return '';
@@ -201,13 +212,13 @@ export const StudyPlannerPage: React.FC = () => {
   })();
 
   // Platform Metrics
-  const completedCount = tasks.filter((t) => t.isCompleted).length;
-  const progressPct = tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
-  const todayTasks = tasks.filter((t) => t.dueDate === todayStr);
-  const todayCompleted = todayTasks.filter((t) => t.isCompleted).length;
-  const highPriorityCount = tasks.filter((t) => t.priority === 'high' && !t.isCompleted).length;
-  const totalPlannedMinutes = tasks
-    .filter((t) => !t.isCompleted)
+  const completedCount = safeTasks.filter((t) => t && t.isCompleted).length;
+  const progressPct = safeTasks.length > 0 ? Math.round((completedCount / safeTasks.length) * 100) : 0;
+  const todayTasks = safeTasks.filter((t) => t && t.dueDate === todayStr);
+  const todayCompleted = todayTasks.filter((t) => t && t.isCompleted).length;
+  const highPriorityCount = safeTasks.filter((t) => t && t.priority === 'high' && !t.isCompleted).length;
+  const totalPlannedMinutes = safeTasks
+    .filter((t) => t && !t.isCompleted)
     .reduce((sum, t) => sum + (t.durationMins || 0), 0);
 
   return (
