@@ -98,7 +98,29 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
       console.warn('Backend feedback dispatch notification:', err);
     }
 
-    // 3. Optional client-side direct Web3Forms forward if configured
+    // 3. Direct browser dispatch to FormSubmit (auto-delivers to studysphere137@gmail.com without opening any email client)
+    try {
+      await fetch('https://formsubmit.co/ajax/studysphere137@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `StudySphere Student (${category})`,
+          email: studentEmail,
+          rating: `${rating} / 5 Stars`,
+          category,
+          message: message.trim(),
+          _subject: `[StudySphere Feedback] ${rating}★ Review (${category.toUpperCase()})`,
+          _captcha: 'false',
+        }),
+      });
+    } catch (err) {
+      // Backend handles delivery
+    }
+
+    // 4. Optional client-side direct Web3Forms forward if configured
     const clientWeb3Key = (import.meta as any).env?.VITE_WEB3FORMS_ACCESS_KEY;
     if (clientWeb3Key) {
       try {
@@ -188,21 +210,11 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose })
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-              <a
-                href={`mailto:studysphere137@gmail.com?subject=${encodeURIComponent(`[StudySphere Feedback] ${category.toUpperCase()} (${rating}★)`)}&body=${encodeURIComponent(`Rating: ${rating}/5 Stars\nCategory: ${category}\nStudent Email: ${email.trim() || user?.email || 'Student'}\n\nFeedback:\n${message.trim()}`)}`}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-indigo-300 border border-indigo-500/30 font-semibold text-xs transition-colors cursor-pointer inline-flex items-center justify-center gap-2"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Mail className="w-4 h-4" />
-                <span>Open in Email App</span>
-              </a>
-
+            <div className="pt-4">
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-lg shadow-indigo-600/30"
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-colors cursor-pointer shadow-lg shadow-indigo-600/30"
               >
                 Back to Workspace
               </button>
