@@ -1492,6 +1492,12 @@ app.get(['/terms', '/terms-of-service', '/terms.html'], (req, res) => {
   res.sendFile(filePath);
 });
 
+// Google Search Console Site Verification
+app.get('/google8805ad8c8829fd18.html', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+  res.send('google-site-verification: google8805ad8c8829fd18.html');
+});
+
 // List of legitimate SPA client routes (exact or prefix)
 const KNOWN_SPA_ROUTES = new Set([
   '/',
