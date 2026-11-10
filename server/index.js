@@ -22,7 +22,7 @@ app.set('trust proxy', 1);
 // Security Hardening: Disable Express signature header
 app.disable('x-powered-by');
 
-// Security Hardening: HTTP Response Headers (HSTS, nosniff, anti-clickjacking, strict referrer, permissions)
+// Security Hardening: HTTP Response Headers (HSTS, nosniff, anti-clickjacking, strict referrer, permissions, CSP)
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -30,6 +30,25 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+
+  // Content-Security-Policy (CSP) engineered for React, Vite, Supabase, Google Identity Services, Google Fonts & Gemini
+  const cspDirectives = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https://images.unsplash.com https://api.dicebear.com https://lh3.googleusercontent.com https://*.googleusercontent.com https://accounts.google.com https://www.gstatic.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://api.web3forms.com https://generativelanguage.googleapis.com",
+    "frame-src 'self' https://accounts.google.com https://*.supabase.co",
+    "worker-src 'self' blob:",
+    "media-src 'self' data: blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self' https://accounts.google.com https://*.supabase.co",
+    "frame-ancestors 'self'"
+  ];
+  res.setHeader('Content-Security-Policy', cspDirectives.join('; '));
+
   res.removeHeader('X-Powered-By');
   next();
 });
@@ -193,6 +212,43 @@ if (fs.existsSync(distPath)) {
     }
   }));
 }
+
+// Well-known public crawlers, SEO & Social Preview endpoints
+app.get('/robots.txt', (req, res) => {
+  const distFile = path.join(distPath, 'robots.txt');
+  const pubFile = path.resolve(__dirname, '../public/robots.txt');
+  const targetFile = fs.existsSync(distFile) ? distFile : pubFile;
+  res.setHeader('Content-Type', 'text/plain; charset=UTF-8');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  if (fs.existsSync(targetFile)) {
+    return res.sendFile(targetFile);
+  }
+  return res.send(`User-agent: *\nAllow: /\nAllow: /privacy-policy\nAllow: /terms\nAllow: /login\nAllow: /register\nDisallow: /app/\nDisallow: /app\nDisallow: /api/\n\nSitemap: https://studysphere-ai-rktl.onrender.com/sitemap.xml\n`);
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  const distFile = path.join(distPath, 'sitemap.xml');
+  const pubFile = path.resolve(__dirname, '../public/sitemap.xml');
+  const targetFile = fs.existsSync(distFile) ? distFile : pubFile;
+  res.setHeader('Content-Type', 'application/xml; charset=UTF-8');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  if (fs.existsSync(targetFile)) {
+    return res.sendFile(targetFile);
+  }
+  return res.status(404).send('Sitemap not found');
+});
+
+app.get('/og-image.png', (req, res) => {
+  const distFile = path.join(distPath, 'og-image.png');
+  const pubFile = path.resolve(__dirname, '../public/og-image.png');
+  const targetFile = fs.existsSync(distFile) ? distFile : pubFile;
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=604800, immutable');
+  if (fs.existsSync(targetFile)) {
+    return res.sendFile(targetFile);
+  }
+  return res.status(404).send('Image not found');
+});
 
 // If a request has a file extension (e.g. .js, .css, .png, .jpg, .svg, .json, .map, .ico, .txt, .pdf)
 // and reached here, it means the file does NOT exist on the server.

@@ -1,0 +1,17 @@
+# https://studysphere-ai-rktl.onrender.com/robots.txt
+# StudySphere AI - Robots Exclusion Protocol
+
+User-agent: *
+Allow: /
+Allow: /privacy-policy
+Allow: /terms
+Allow: /login
+Allow: /register
+
+# Disallow private user workspace, dashboard, and backend APIs
+Disallow: /app/
+Disallow: /app
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://studysphere-ai-rktl.onrender.com/sitemap.xml
