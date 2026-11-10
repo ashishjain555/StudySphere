@@ -9,9 +9,6 @@ import {
   UserFeedback,
 } from '../types';
 import {
-  INITIAL_SUBJECTS,
-  INITIAL_TOPICS,
-  INITIAL_MATERIALS,
   SAMPLE_QUIZ_BANK,
 } from './dataStore';
 

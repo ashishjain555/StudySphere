@@ -48,7 +48,7 @@ interface DashboardPageProps {
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskAI }) => {
   const { user } = useAuth();
 
-  const [subjects] = useState<Subject[]>(() => {
+  const [subjects, setSubjects] = useState<Subject[]>(() => {
     const s = DataStore.getSubjects();
     return Array.isArray(s) ? s.slice(0, 4) : [];
   });
@@ -72,14 +72,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigate, onAskA
 
   useEffect(() => {
     const handleUpdate = () => {
+      const s = DataStore.getSubjects();
+      setSubjects(Array.isArray(s) ? s.slice(0, 4) : []);
       const m = DataStore.getMaterials();
       setMaterials(Array.isArray(m) ? m.slice(0, 3) : []);
       const t = DataStore.getTasks();
       setTasks(Array.isArray(t) ? t : []);
     };
+    window.addEventListener('studysphere:subjects_update', handleUpdate);
     window.addEventListener('studysphere:materials_update', handleUpdate);
     window.addEventListener('storage', handleUpdate);
     return () => {
+      window.removeEventListener('studysphere:subjects_update', handleUpdate);
       window.removeEventListener('studysphere:materials_update', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };

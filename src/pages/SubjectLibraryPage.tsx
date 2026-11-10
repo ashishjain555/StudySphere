@@ -101,9 +101,11 @@ export const SubjectLibraryPage: React.FC<SubjectLibraryPageProps> = ({ onNaviga
       const w = DataStore.getWeakTopics();
       setAllWeakTopics(Array.isArray(w) ? w : []);
     };
+    window.addEventListener('studysphere:subjects_update', handleUpdate);
     window.addEventListener('studysphere:materials_update', handleUpdate);
     window.addEventListener('storage', handleUpdate);
     return () => {
+      window.removeEventListener('studysphere:subjects_update', handleUpdate);
       window.removeEventListener('studysphere:materials_update', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
     };

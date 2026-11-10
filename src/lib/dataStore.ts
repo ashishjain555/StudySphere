@@ -156,86 +156,19 @@ export const DEFAULT_USER: UserProfile = {
   createdAt: new Date().toISOString(),
 };
 
-// Initial Seed Subjects (Available to all users)
-export const INITIAL_SUBJECTS: Subject[] = [
-  {
-    id: 'subj_ds',
-    name: 'Data Structures',
-    code: 'CS-201',
-    description: 'Fundamental data organization, linear & non-linear structures, algorithmic efficiency.',
-    icon: 'Network',
-    progressPercentage: 0,
-    topicCount: 16,
-    unitsCount: 4,
-    color: 'from-blue-500 to-indigo-600',
-  },
-  {
-    id: 'subj_dbms',
-    name: 'Database Management',
-    code: 'CS-202',
-    description: 'Relational databases, SQL, ER modeling, normalization, transaction processing, and indexing.',
-    icon: 'Database',
-    progressPercentage: 0,
-    topicCount: 14,
-    unitsCount: 4,
-    color: 'from-emerald-500 to-teal-600',
-  },
-  {
-    id: 'subj_cn',
-    name: 'Computer Networks',
-    code: 'CS-301',
-    description: 'OSI model, TCP/IP stack, routing protocols, wireless networking, and network security.',
-    icon: 'Wifi',
-    progressPercentage: 0,
-    topicCount: 12,
-    unitsCount: 4,
-    color: 'from-blue-600 to-indigo-700',
-  },
-  {
-    id: 'subj_os',
-    name: 'Operating Systems',
-    code: 'CS-302',
-    description: 'Process management, memory allocation, deadlocks, file systems, and concurrency primitives.',
-    icon: 'Cpu',
-    progressPercentage: 0,
-    topicCount: 15,
-    unitsCount: 4,
-    color: 'from-amber-500 to-orange-600',
-  },
-  {
-    id: 'subj_ai',
-    name: 'Artificial Intelligence',
-    code: 'CS-401',
-    description: 'Search algorithms, knowledge representation, machine learning basics, neural networks, and NLP.',
-    icon: 'Bot',
-    progressPercentage: 0,
-    topicCount: 18,
-    unitsCount: 4,
-    color: 'from-cyan-500 to-blue-600',
-  },
-  {
-    id: 'subj_web',
-    name: 'Web Development',
-    code: 'CS-205',
-    description: 'Modern full-stack web architectures, REST APIs, asynchronous UI frameworks, and state management.',
-    icon: 'Globe',
-    progressPercentage: 0,
-    topicCount: 14,
-    unitsCount: 4,
-    color: 'from-pink-500 to-rose-600',
-  },
-  {
-    id: 'subj_se',
-    name: 'Software Engineering',
-    code: 'CS-305',
-    description: 'Agile methodologies, software architecture patterns, CI/CD, testing paradigms, and design patterns.',
-    icon: 'Layers',
-    progressPercentage: 0,
-    topicCount: 12,
-    unitsCount: 4,
-    color: 'from-slate-600 to-blue-700',
-  },
-];
+// Legacy dummy seed subject IDs to filter out and purge from storage
+export const DUMMY_SEED_SUBJECT_IDS = new Set([
+  'subj_ds',
+  'subj_dbms',
+  'subj_cn',
+  'subj_os',
+  'subj_ai',
+  'subj_web',
+  'subj_se',
+]);
+
+// Initial State - Clean & Empty so users configure their own curriculum
+export const INITIAL_SUBJECTS: Subject[] = [];
 
 export const formatChapterLabel = (rawName?: string, chapterNum?: number): string => {
   const num = chapterNum || 1;
@@ -259,120 +192,7 @@ export const formatFileSize = (bytes?: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-export const INITIAL_TOPICS: Topic[] = [
-  {
-    id: 'top_ds_1',
-    subjectId: 'subj_ds',
-    unitNumber: 1,
-    unitName: 'Chapter 1: Linear Data Structures',
-    title: 'Arrays & Singly Linked Lists',
-    description: 'Memory representation, traversal, insertion, deletion, and time complexity comparisons.',
-    notesContent: '### Arrays vs Linked Lists\n- **Arrays**: Contiguous memory allocation, O(1) random access, O(n) insertion/deletion.\n- **Linked Lists**: Dynamic memory nodes connected by pointers, O(n) access, O(1) insertion at pointer.\n\n```python\nclass Node:\n    def __init__(self, val):\n        self.val = val\n        self.next = None\n```',
-    durationMins: 45,
-    difficulty: 'easy',
-    questionsCount: 5,
-    diagramSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 220" width="100%" height="100%"><rect width="680" height="220" rx="16" fill="#0b0f19"/><text x="30" y="35" fill="#38bdf8" font-size="13" font-weight="bold" font-family="sans-serif">ARRAY: Contiguous Memory Blocks [O(1) Random Access]</text><g transform="translate(30, 48)"><rect x="0" y="0" width="85" height="48" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/><text x="42" y="27" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">Val: 10</text><text x="42" y="42" fill="#94a3b8" font-size="10" text-anchor="middle">Idx: 0</text><rect x="90" y="0" width="85" height="48" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/><text x="132" y="27" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">Val: 20</text><text x="132" y="42" fill="#94a3b8" font-size="10" text-anchor="middle">Idx: 1</text><rect x="180" y="0" width="85" height="48" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/><text x="222" y="27" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">Val: 30</text><text x="222" y="42" fill="#94a3b8" font-size="10" text-anchor="middle">Idx: 2</text><rect x="270" y="0" width="85" height="48" rx="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/><text x="312" y="27" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">Val: 40</text><text x="312" y="42" fill="#94a3b8" font-size="10" text-anchor="middle">Idx: 3</text></g><text x="30" y="135" fill="#a855f7" font-size="13" font-weight="bold" font-family="sans-serif">LINKED LIST: Pointer-Chained Heap Nodes [O(1) Insertion at Pointer]</text><g transform="translate(30, 148)"><rect x="0" y="0" width="70" height="44" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/><text x="35" y="26" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">10 | •</text><line x1="70" y1="22" x2="112" y2="22" stroke="#a855f7" stroke-width="2" marker-end="url(#arr-p)"/><rect x="115" y="0" width="70" height="44" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/><text x="150" y="26" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">20 | •</text><line x1="185" y1="22" x2="227" y2="22" stroke="#a855f7" stroke-width="2" marker-end="url(#arr-p)"/><rect x="230" y="0" width="70" height="44" rx="8" fill="#1e293b" stroke="#a855f7" stroke-width="1.5"/><text x="265" y="26" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">30 | •</text><line x1="300" y1="22" x2="342" y2="22" stroke="#a855f7" stroke-width="2" marker-end="url(#arr-p)"/><rect x="345" y="0" width="85" height="44" rx="8" fill="#1e293b" stroke="#ef4444" stroke-width="1.5"/><text x="387" y="26" fill="#fca5a5" font-size="11" font-weight="bold" text-anchor="middle">40 | NULL</text></g><defs><marker id="arr-p" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7"/></marker></defs></svg>`,
-    diagramCaption: 'Direct comparison: Contiguous sequential memory indices vs Dynamic pointer-linked nodes',
-  },
-  {
-    id: 'top_ds_2',
-    subjectId: 'subj_ds',
-    unitNumber: 1,
-    unitName: 'Chapter 1: Linear Data Structures',
-    title: 'Stacks & Queues Applications',
-    description: 'LIFO & FIFO operations, expression evaluation, infix to postfix conversion, circular queues.',
-    notesContent: '### Stacks (LIFO)\nOperations: push(), pop(), peek(). Used in function call stacks, undo mechanisms, and expression parsing.\n\n### Queues (FIFO)\nOperations: enqueue(), dequeue(). Used in CPU scheduling and BFS tree traversals.',
-    durationMins: 50,
-    difficulty: 'medium',
-    questionsCount: 5,
-  },
-  {
-    id: 'top_ds_3',
-    subjectId: 'subj_ds',
-    unitNumber: 2,
-    unitName: 'Chapter 2: Trees & Binary Search Trees',
-    title: 'Tree Traversals & BST Operations',
-    description: 'Inorder, Preorder, Postorder traversals, BST insertion, searching, and deletion edge cases.',
-    notesContent: '### Binary Search Tree Invariant\nFor every node N: left subtree values < N.val < right subtree values.\n\nInorder traversal of a BST yields elements in strictly sorted ascending order.',
-    durationMins: 60,
-    difficulty: 'medium',
-    questionsCount: 5,
-  },
-  {
-    id: 'top_ds_4',
-    subjectId: 'subj_ds',
-    unitNumber: 3,
-    unitName: 'Chapter 3: Graphs & Shortest Paths',
-    title: 'Graph Traversal: BFS, DFS & Dijkstra',
-    description: 'Adjacency list representation, Breadth-First Search, Depth-First Search, and shortest path greedy algorithms.',
-    notesContent: '### Graph Representation\n- **Adjacency Matrix**: Space O(V^2), lookup O(1)\n- **Adjacency List**: Space O(V + E), lookup O(deg(V))\n\n### Dijkstra Algorithm\nFinds single-source shortest path in graphs with non-negative edge weights using a Min-Priority Queue in O((V + E) log V) time.',
-    durationMins: 75,
-    difficulty: 'hard',
-    questionsCount: 5,
-  },
-  {
-    id: 'top_dbms_1',
-    subjectId: 'subj_dbms',
-    unitNumber: 1,
-    unitName: 'Chapter 1: Relational Model & ER Diagrams',
-    title: 'Entity-Relationship Diagrams & Mapping',
-    description: 'Entities, attributes, relationships, cardinalities, weak entities, and converting ERD to relational schema.',
-    notesContent: '### ER Components\n- **Entity**: Rectangle (e.g. Student, Course)\n- **Attribute**: Oval (e.g. StudentID, Name)\n- **Relationship**: Diamond (e.g. Enrolls_In)\n- **Primary Key**: Underlined attribute',
-    durationMins: 40,
-    difficulty: 'easy',
-    questionsCount: 5,
-  },
-  {
-    id: 'top_dbms_2',
-    subjectId: 'subj_dbms',
-    unitNumber: 2,
-    unitName: 'Chapter 2: SQL & Relational Algebra',
-    title: 'Advanced SQL Joins & Aggregations',
-    description: 'INNER, LEFT, RIGHT, FULL OUTER joins, GROUP BY, HAVING, subqueries, and window functions.',
-    notesContent: '### SQL Join Types\n- `INNER JOIN`: Matching records in both tables\n- `LEFT JOIN`: All records from left table + matched right\n- `GROUP BY`: Aggregates rows sharing column values',
-    durationMins: 55,
-    difficulty: 'medium',
-    questionsCount: 5,
-  },
-  {
-    id: 'top_dbms_3',
-    subjectId: 'subj_dbms',
-    unitNumber: 3,
-    unitName: 'Chapter 3: Database Normalization',
-    title: 'Functional Dependencies & 1NF to BCNF',
-    description: 'Identifying anomalies, Armstrong axioms, 1NF, 2NF, 3NF, and Boyce-Codd Normal Form decomposition.',
-    notesContent: '### Normal Forms Summary\n- **1NF**: Atomic attribute values\n- **2NF**: 1NF + no partial dependency on composite key\n- **3NF**: 2NF + no transitive dependency\n- **BCNF**: For every X -> Y, X must be a super key',
-    durationMins: 70,
-    difficulty: 'hard',
-    questionsCount: 5,
-  },
-  {
-    id: 'top_os_1',
-    subjectId: 'subj_os',
-    unitNumber: 1,
-    unitName: 'Chapter 1: Process Management & CPU Scheduling',
-    title: 'CPU Scheduling Algorithms',
-    description: 'FCFS, SJF, Priority, Round Robin, Gantt charts, waiting time and turnaround time calculations.',
-    notesContent: '### Scheduling Metrics\n- **Turnaround Time** = Completion Time - Arrival Time\n- **Waiting Time** = Turnaround Time - Burst Time\n\n### Round Robin (RR)\nPreemptive scheduling using fixed time quantum (Q). Prevents starvation.',
-    durationMins: 50,
-    difficulty: 'medium',
-    questionsCount: 5,
-    diagramSvg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 200" width="100%" height="100%"><rect width="680" height="200" rx="16" fill="#0b0f19"/><text x="340" y="30" fill="#f8fafc" font-size="13" font-weight="bold" font-family="sans-serif" text-anchor="middle">5-State Process Lifecycle & CPU Scheduling Flow</text><rect x="30" y="70" width="90" height="50" rx="10" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5"/><text x="75" y="100" fill="#f8fafc" font-size="12" font-weight="bold" text-anchor="middle">NEW</text><line x1="120" y1="95" x2="165" y2="95" stroke="#94a3b8" stroke-width="2" marker-end="url(#os-arr)"/><rect x="170" y="70" width="110" height="50" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/><text x="225" y="100" fill="#38bdf8" font-size="12" font-weight="bold" text-anchor="middle">READY QUEUE</text><line x1="280" y1="95" x2="330" y2="95" stroke="#38bdf8" stroke-width="2" marker-end="url(#os-arr)"/><rect x="335" y="70" width="115" height="50" rx="10" fill="#1e293b" stroke="#6366f1" stroke-width="2"/><text x="392" y="100" fill="#c7d2fe" font-size="12" font-weight="bold" text-anchor="middle">RUNNING (CPU)</text><path d="M 392 70 C 392 40, 225 40, 225 70" fill="none" stroke="#eab308" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#os-arr-y)"/><text x="308" y="44" fill="#fef08a" font-size="10" text-anchor="middle">Quantum Expired</text><line x1="450" y1="95" x2="520" y2="95" stroke="#10b981" stroke-width="2" marker-end="url(#os-arr-g)"/><rect x="525" y="70" width="125" height="50" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/><text x="587" y="100" fill="#6ee7b7" font-size="12" font-weight="bold" text-anchor="middle">TERMINATED</text><path d="M 392 120 C 392 165, 310 165, 310 165" fill="none" stroke="#f43f5e" stroke-width="1.5" marker-end="url(#os-arr-r)"/><rect x="250" y="145" width="125" height="40" rx="8" fill="#1e293b" stroke="#f43f5e" stroke-width="1.5"/><text x="312" y="170" fill="#fda4af" font-size="11" font-weight="bold" text-anchor="middle">WAITING / I/O</text><path d="M 250 165 C 190 165, 190 135, 190 120" fill="none" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#os-arr)"/><defs><marker id="os-arr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/></marker><marker id="os-arr-g" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981"/></marker><marker id="os-arr-y" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#eab308"/></marker><marker id="os-arr-r" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f43f5e"/></marker></defs></svg>`,
-    diagramCaption: 'Process lifecycle transitions: Admission, CPU Dispatching, Quantum Expiry, and I/O Wait',
-  },
-  {
-    id: 'top_os_2',
-    subjectId: 'subj_os',
-    unitNumber: 2,
-    unitName: 'Chapter 2: Concurrency & Deadlocks',
-    title: 'Deadlock Detection & Bankers Algorithm',
-    description: 'Four deadlock conditions, Resource Allocation Graphs, Bankers algorithm for safety state inspection.',
-    notesContent: '### 4 Coffman Conditions for Deadlock\n1. Mutual Exclusion\n2. Hold and Wait\n3. No Preemption\n4. Circular Wait',
-    durationMins: 65,
-    difficulty: 'hard',
-    questionsCount: 5,
-  },
-];
+export const INITIAL_TOPICS: Topic[] = [];
 
 export const INITIAL_MATERIALS: StudyMaterial[] = [];
 
@@ -384,8 +204,6 @@ export const INITIAL_QUIZ_ATTEMPTS: QuizAttempt[] = [];
 export const SAMPLE_QUIZ_BANK: QuizQuestion[] = [
   {
     id: 'q1',
-    subjectId: 'subj_ds',
-    topicId: 'top_ds_1',
     questionText: 'What is the time complexity of searching an element in a balanced Binary Search Tree?',
     options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
     correctOptionIndex: 1,
@@ -394,8 +212,6 @@ export const SAMPLE_QUIZ_BANK: QuizQuestion[] = [
   },
   {
     id: 'q2',
-    subjectId: 'subj_ds',
-    topicId: 'top_ds_1',
     questionText: 'Which data structure is naturally used for Breadth-First Search (BFS) in a graph?',
     options: ['Stack', 'Queue', 'Priority Queue', 'Array'],
     correctOptionIndex: 1,
@@ -404,8 +220,6 @@ export const SAMPLE_QUIZ_BANK: QuizQuestion[] = [
   },
   {
     id: 'q3',
-    subjectId: 'subj_ds',
-    topicId: 'top_ds_4',
     questionText: 'What algorithm is best suited to find the single-source shortest path in a graph with non-negative edge weights?',
     options: ['Floyd-Warshall Algorithm', 'Dijkstra Algorithm', 'Bellman-Ford Algorithm', 'Kruskal Algorithm'],
     correctOptionIndex: 1,
@@ -414,8 +228,6 @@ export const SAMPLE_QUIZ_BANK: QuizQuestion[] = [
   },
   {
     id: 'q4',
-    subjectId: 'subj_dbms',
-    topicId: 'top_dbms_3',
     questionText: 'A relation is in Boyce-Codd Normal Form (BCNF) if for every non-trivial functional dependency X -> Y:',
     options: ['X is a prime attribute', 'Y is a candidate key', 'X is a super key', 'Y is a prime attribute'],
     correctOptionIndex: 2,
@@ -424,8 +236,6 @@ export const SAMPLE_QUIZ_BANK: QuizQuestion[] = [
   },
   {
     id: 'q5',
-    subjectId: 'subj_os',
-    topicId: 'top_os_1',
     questionText: 'Which CPU scheduling algorithm guarantees freedom from starvation for all ready processes?',
     options: ['Shortest Job First (SJF)', 'Priority Scheduling', 'Round Robin (RR)', 'First-Come First-Served without time slicing'],
     correctOptionIndex: 2,
@@ -535,10 +345,16 @@ export const DataStore = {
     }
 
     const existingSubjects = getStored<Subject[]>(userKey(STORAGE_KEYS.SUBJECTS, uid), []);
-    if (existingSubjects.length === 0) {
-      setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), INITIAL_SUBJECTS);
-      setStored(userKey(STORAGE_KEYS.TOPICS, uid), INITIAL_TOPICS);
-    }
+    const cleanSubjects = (Array.isArray(existingSubjects) ? existingSubjects : []).filter(
+      (s) => s && s.id && !DUMMY_SEED_SUBJECT_IDS.has(s.id)
+    );
+    setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), cleanSubjects);
+
+    const existingTopics = getStored<Topic[]>(userKey(STORAGE_KEYS.TOPICS, uid), []);
+    const cleanTopics = (Array.isArray(existingTopics) ? existingTopics : []).filter(
+      (t) => t && t.subjectId && !DUMMY_SEED_SUBJECT_IDS.has(t.subjectId)
+    );
+    setStored(userKey(STORAGE_KEYS.TOPICS, uid), cleanTopics);
 
     const existingTasks = getStored<StudyPlanTask[]>(userKey(STORAGE_KEYS.STUDY_PLANS, uid), []);
     if (existingTasks.length === 0) {
@@ -581,11 +397,29 @@ export const DataStore = {
 
   getSubjects(customUserId?: string): Subject[] {
     const uid = customUserId || getCurrentUserId();
-    const rawSubjects = getStored<Subject[]>(userKey(STORAGE_KEYS.SUBJECTS, uid), INITIAL_SUBJECTS);
-    const baseSubjects = Array.isArray(rawSubjects) && rawSubjects.length > 0 ? rawSubjects : INITIAL_SUBJECTS;
+    const rawSubjects = getStored<Subject[]>(userKey(STORAGE_KEYS.SUBJECTS, uid), []);
+    const cleanSubjects = (Array.isArray(rawSubjects) ? rawSubjects : []).filter(
+      (s) => s && s.id && !DUMMY_SEED_SUBJECT_IDS.has(s.id)
+    );
+    // Self-healing migration: If dummy seed subjects were present in user storage, overwrite with cleaned list
+    if (Array.isArray(rawSubjects) && rawSubjects.length !== cleanSubjects.length) {
+      setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), cleanSubjects);
+    }
+    // Also clean up any un-scoped legacy subjects key in localStorage
+    try {
+      const legacyRaw = localStorage.getItem(STORAGE_KEYS.SUBJECTS);
+      if (legacyRaw) {
+        const legacyParsed = JSON.parse(legacyRaw);
+        if (Array.isArray(legacyParsed)) {
+          const cleanedLegacy = legacyParsed.filter((s: any) => s && s.id && !DUMMY_SEED_SUBJECT_IDS.has(s.id));
+          localStorage.setItem(STORAGE_KEYS.SUBJECTS, JSON.stringify(cleanedLegacy));
+        }
+      }
+    } catch {}
+
     const progressMap = getStored<Record<string, number>>(userKey('studysphere_user_progress', uid), {});
     const safeProgress = (progressMap && typeof progressMap === 'object') ? progressMap : {};
-    return baseSubjects.map((s) => ({
+    return cleanSubjects.map((s) => ({
       ...s,
       progressPercentage: safeProgress[s.id] || 0,
     }));
@@ -596,6 +430,9 @@ export const DataStore = {
     list.unshift(subject);
     setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), list);
     syncSubjectToSupabase(subject).catch((e) => console.warn('Supabase subject sync:', e));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:subjects_update'));
+    }
   },
   updateSubject(subject: Subject): void {
     const uid = getCurrentUserId();
@@ -608,6 +445,9 @@ export const DataStore = {
     }
     setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), list);
     syncSubjectToSupabase(subject).catch((e) => console.warn('Supabase subject sync:', e));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:subjects_update'));
+    }
   },
   deleteSubject(subjectId: string): void {
     const uid = getCurrentUserId();
@@ -624,13 +464,34 @@ export const DataStore = {
     setStored(userKey(STORAGE_KEYS.MATERIALS, uid), materials);
 
     deleteSubjectFromSupabase(subjectId).catch((e) => console.warn('Supabase subject delete:', e));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:subjects_update'));
+    }
   },
 
   getTopics(subjectId?: string): Topic[] {
     const uid = getCurrentUserId();
-    const rawList = getStored<Topic[]>(userKey(STORAGE_KEYS.TOPICS, uid), INITIAL_TOPICS);
-    const list = Array.isArray(rawList) && rawList.length > 0 ? rawList : INITIAL_TOPICS;
-    const normalized = list.map((t) => ({
+    const rawList = getStored<Topic[]>(userKey(STORAGE_KEYS.TOPICS, uid), []);
+    const cleanTopics = (Array.isArray(rawList) ? rawList : []).filter(
+      (t) => t && t.subjectId && !DUMMY_SEED_SUBJECT_IDS.has(t.subjectId)
+    );
+    // Self-healing migration: If dummy seed topics were present in user storage, overwrite with cleaned list
+    if (Array.isArray(rawList) && rawList.length !== cleanTopics.length) {
+      setStored(userKey(STORAGE_KEYS.TOPICS, uid), cleanTopics);
+    }
+    // Also clean un-scoped legacy key if present
+    try {
+      const legacyRaw = localStorage.getItem(STORAGE_KEYS.TOPICS);
+      if (legacyRaw) {
+        const legacyParsed = JSON.parse(legacyRaw);
+        if (Array.isArray(legacyParsed)) {
+          const cleanedLegacy = legacyParsed.filter((t: any) => t && t.subjectId && !DUMMY_SEED_SUBJECT_IDS.has(t.subjectId));
+          localStorage.setItem(STORAGE_KEYS.TOPICS, JSON.stringify(cleanedLegacy));
+        }
+      }
+    } catch {}
+
+    const normalized = cleanTopics.map((t) => ({
       ...t,
       unitName: formatChapterLabel(t.unitName, t.unitNumber),
     }));
@@ -640,6 +501,9 @@ export const DataStore = {
     const uid = getCurrentUserId();
     const list = this.getTopics();
     setStored(userKey(STORAGE_KEYS.TOPICS, uid), [...newTopics, ...list]);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:subjects_update'));
+    }
   },
   deleteChapter(subjectId: string, chapterNumber: number, documentId?: string): void {
     const uid = getCurrentUserId();
@@ -662,6 +526,9 @@ export const DataStore = {
       subjects[idx].unitsCount = remainingChapters.size;
       setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), subjects);
     }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:subjects_update'));
+    }
   },
   deleteDocument(subjectId: string, documentId: string): void {
     const uid = getCurrentUserId();
@@ -683,6 +550,9 @@ export const DataStore = {
       }
       setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), subjects);
     }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:subjects_update'));
+    }
   },
   deleteTopic(topicId: string): void {
     const uid = getCurrentUserId();
@@ -701,6 +571,9 @@ export const DataStore = {
         subjects[idx].unitsCount = remainingChapters.size;
         setStored(userKey(STORAGE_KEYS.SUBJECTS, uid), subjects);
       }
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('studysphere:subjects_update'));
     }
   },
 

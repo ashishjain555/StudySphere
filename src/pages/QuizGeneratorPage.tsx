@@ -152,7 +152,7 @@ export const QuizGeneratorPage: React.FC<QuizGeneratorPageProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject: targetSubj?.name || 'Data Structures',
+          subject: targetSubj?.name || selectedTopic || 'General Studies',
           topic: selectedTopic,
           difficulty,
           questionCount,
@@ -204,7 +204,7 @@ export const QuizGeneratorPage: React.FC<QuizGeneratorPageProps> = ({
       id: `qa_${Date.now()}`,
       userId: DataStore.getActiveUser().id,
       subjectId: selectedSubjectId,
-      subjectName: targetSubj?.name || 'Data Structures',
+      subjectName: targetSubj?.name || selectedTopic || 'General Studies',
       topicTitle: selectedTopic,
       scorePercentage: scorePct,
       totalQuestions: questions.length,
