@@ -3,32 +3,32 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
 /* ==========================================================================
-   HUMAN-CRAFTED DARK DESIGN TOKENS
-   Linear & Cursor inspired: Deep Matte Obsidian + Tactile Steel Sapphire
-   ZERO glowing AI SaaS effects • ZERO eye-piercing neon saturation
+   STUDYSPHERE VIBRANT ELECTRIC OBSIDIAN DESIGN TOKENS
+   Deep Cosmic Obsidian + Radiant Electric Indigo & Violet Nebula
+   Rich visual depth • Tactile Glassmorphism • Buttery 60fps Performance
    ========================================================================== */
 
 :root, .dark, [data-theme="dark"] {
-  --bg-primary: #0A0D14;
-  --bg-secondary: #111520;
-  --bg-card: #141824;
-  --border-subtle: #1C2230;
-  --border-default: #252D3F;
-  --text-primary: #F1F5F9;
+  --bg-primary: #070913;
+  --bg-secondary: #0D1224;
+  --bg-card: #11182E;
+  --border-subtle: rgba(99, 102, 241, 0.14);
+  --border-default: rgba(99, 102, 241, 0.24);
+  --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
   --text-muted: #64748B;
-  --accent-primary: #2563EB;
-  --accent-hover: #1D4ED8;
-  --accent-surface: rgba(37, 99, 235, 0.12);
-  --accent-border: rgba(59, 130, 246, 0.25);
-  --accent-text: #93C5FD;
-  --card-bg: rgba(17, 22, 33, 0.85);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.35);
-  --panel-bg: rgba(13, 17, 26, 0.90);
-  --scrollbar-track: #0A0D14;
-  --scrollbar-thumb: #1E2536;
-  --scrollbar-thumb-hover: #334155;
+  --accent-primary: #4F46E5;
+  --accent-hover: #4338CA;
+  --accent-surface: rgba(79, 70, 229, 0.16);
+  --accent-border: rgba(99, 102, 241, 0.35);
+  --accent-text: #A5B4FC;
+  --card-bg: rgba(13, 18, 36, 0.75);
+  --card-border: rgba(255, 255, 255, 0.09);
+  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  --panel-bg: rgba(9, 13, 27, 0.88);
+  --scrollbar-track: #070913;
+  --scrollbar-thumb: #1E2548;
+  --scrollbar-thumb-hover: #312E81;
   color-scheme: dark;
 }
 
@@ -114,20 +114,34 @@
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 8px 30px -4px rgba(99, 102, 241, 0.22);
 }
 
-/* Subtle, Executive Metallic Pearl Text (NO cheap neon blue/purple gradient) */
+/* Radiant Indigo-Violet & Cyber Gradient Text */
 .gradient-text {
-  background: linear-gradient(180deg, #FFFFFF 20%, #CBD5E1 100%);
+  background: linear-gradient(135deg, #FFFFFF 15%, #C7D2FE 55%, #818CF8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* ZERO Glow Effects on Buttons & Elements */
-.glow-indigo, .glow-violet, .glow-sapphire {
-  box-shadow: none !important;
+.gradient-text-aurora {
+  background: linear-gradient(135deg, #38BDF8 0%, #818CF8 45%, #C084FC 80%, #F472B6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Atmospheric Glow Effects */
+.glow-indigo {
+  box-shadow: 0 0 25px -4px rgba(99, 102, 241, 0.4) !important;
+}
+
+.glow-violet {
+  box-shadow: 0 0 25px -4px rgba(139, 92, 246, 0.4) !important;
+}
+
+.glow-sapphire {
+  box-shadow: 0 0 25px -4px rgba(56, 189, 248, 0.35) !important;
 }
 
 /* Keyframes - Soft & Gentle */
