@@ -26,6 +26,7 @@ export const LearningNetwork3D: React.FC = () => {
     try {
       const width = container.clientWidth || 600;
       const height = container.clientHeight || 500;
+      const isMobile = (container.clientWidth || window.innerWidth) < 768;
 
       // 1. Scene, Camera, Renderer
       const scene = new THREE.Scene();
@@ -34,11 +35,11 @@ export const LearningNetwork3D: React.FC = () => {
 
       renderer = new THREE.WebGLRenderer({
         alpha: true,
-        antialias: true,
+        antialias: !isMobile,
         powerPreference: 'high-performance',
       });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5));
       container.appendChild(renderer.domElement);
 
       // 2. Lighting Setup
@@ -356,7 +357,20 @@ export const LearningNetwork3D: React.FC = () => {
         renderer.render(scene, camera);
       };
 
-      animate();
+      // Pause WebGL rendering loop when scrolled offscreen or tab hidden
+      let isVisible = true;
+      const intersectionObserver = new IntersectionObserver(([entry]) => {
+        isVisible = entry ? entry.isIntersecting : true;
+      }, { threshold: 0.05 });
+      intersectionObserver.observe(container);
+
+      const loop = () => {
+        animFrameId = requestAnimationFrame(loop);
+        if (!isVisible || (typeof document !== 'undefined' && document.hidden)) return;
+        animate();
+      };
+
+      loop();
 
       // 9. Resize Handling with ResizeObserver
       const handleResize = () => {
@@ -378,6 +392,7 @@ export const LearningNetwork3D: React.FC = () => {
         window.removeEventListener('pointerup', onPointerUp);
         window.removeEventListener('pointercancel', onPointerUp);
         resizeObserver.disconnect();
+        intersectionObserver.disconnect();
         cancelAnimationFrame(animFrameId);
 
         // Dispose geometries & materials

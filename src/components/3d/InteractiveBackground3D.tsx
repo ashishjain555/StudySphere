@@ -23,6 +23,9 @@ export const InteractiveBackground3D: React.FC<InteractiveBackground3DProps> = (
       const width = container.clientWidth || window.innerWidth;
       const height = container.clientHeight || window.innerHeight;
 
+      const isMobile = (container.clientWidth || window.innerWidth) < 768;
+      const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
       // 1. Scene & Camera Setup
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
@@ -31,11 +34,11 @@ export const InteractiveBackground3D: React.FC<InteractiveBackground3DProps> = (
       // 2. High-Performance WebGL Renderer
       renderer = new THREE.WebGLRenderer({
         alpha: true,
-        antialias: true,
+        antialias: !isMobile,
         powerPreference: 'high-performance',
       });
       renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+      renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5));
       container.appendChild(renderer.domElement);
 
       // 3. Lighting Setup
@@ -51,7 +54,7 @@ export const InteractiveBackground3D: React.FC<InteractiveBackground3DProps> = (
       scene.add(ambientLight);
 
       // 4. Dynamic Particle System (Neural Constellation)
-      const particleCount = intensity === 'vibrant' ? 220 : 160;
+      const particleCount = isMobile ? (intensity === 'vibrant' ? 90 : 60) : (intensity === 'vibrant' ? 220 : 160);
       const posArray = new Float32Array(particleCount * 3);
       const originalPos = new Float32Array(particleCount * 3);
       const colArray = new Float32Array(particleCount * 3);
@@ -215,6 +218,10 @@ export const InteractiveBackground3D: React.FC<InteractiveBackground3DProps> = (
 
       const animate = () => {
         animFrameId = requestAnimationFrame(animate);
+
+        // Pause rendering when tab is in background to save CPU and battery
+        if (typeof document !== 'undefined' && document.hidden) return;
+
         const elapsedTime = clock.getElapsedTime();
 
         // Smooth camera damping towards mouse target

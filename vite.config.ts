@@ -23,4 +23,25 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('node_modules/three')) {
+            return 'vendor-three';
+          }
+          if (id.includes('node_modules/recharts')) {
+            return 'vendor-charts';
+          }
+          if (id.includes('node_modules/@supabase')) {
+            return 'vendor-supabase';
+          }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
 })

@@ -209,7 +209,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <div ref={mainRef} className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-blue-600 selection:text-white relative">
+    <main id="main-content" ref={mainRef} className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-blue-600 selection:text-white relative">
+      {/* Keyboard Accessibility Skip Link */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+      >
+        Skip to main content
+      </a>
+
       {/* Dynamic 3D Neural Constellation Background with Cursor Tracking */}
       <InteractiveBackground3D intensity="vibrant" />
 
@@ -217,9 +225,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       <header className="landing-header sticky top-0 z-40 w-full bg-slate-950/80 border-b border-slate-800/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Brand Logo */}
-          <div
-            onClick={() => onNavigate('/')}
+          <a
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate('/');
+            }}
             className="flex items-center gap-3 cursor-pointer group"
+            aria-label="StudySphere AI Home"
           >
             <BrandLogo size="md" />
             <div>
@@ -228,7 +241,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
                 Workspace
               </span>
             </div>
-          </div>
+          </a>
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-300">
@@ -315,7 +328,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </div>
 
             {/* Quick Metrics */}
-            <div className="pt-8 border-t border-slate-800/80 grid grid-cols-3 gap-4">
+            <div className="pt-8 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="hero-metrics-item">
                 <div className="text-xl font-medium text-slate-100">100%</div>
                 <div className="text-xs text-slate-400 font-normal">Modular Workspace</div>
@@ -458,7 +471,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             <button onClick={() => setIsFeedbackOpen(true)} className="hover:text-indigo-400 text-indigo-300 font-medium transition-colors cursor-pointer">Give Feedback</button>
             <button onClick={() => onNavigate('/login')} className="hover:text-white transition-colors cursor-pointer">Sign In</button>
           </div>
-          <div className="text-slate-500 text-[11px]">
+          <div className="text-slate-400 text-[11px]">
             © {new Date().getFullYear()} StudySphere. Academic study platform.
           </div>
         </div>
@@ -485,6 +498,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}
       />
-    </div>
+    </main>
   );
 };
