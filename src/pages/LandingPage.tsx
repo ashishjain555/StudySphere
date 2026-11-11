@@ -1,6 +1,5 @@
 import React, { useState, useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { BrandLogo } from '../components/common/BrandLogo';
 import { AboutModal } from '../components/modals/AboutModal';
 import { PrivacyPolicyModal } from '../components/modals/PrivacyPolicyModal';
@@ -23,14 +22,8 @@ import {
   Play,
   Compass,
 } from 'lucide-react';
-import { LearningNetwork3D } from '../components/3d/LearningNetwork3D';
 import { InteractiveBackground3D } from '../components/3d/InteractiveBackground3D';
 import { TiltCard3D } from '../components/3d/TiltCard3D';
-
-// Register GSAP ScrollTrigger plugin once
-if (typeof window !== 'undefined') {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 interface LandingPageProps {
   onNavigate: (path: string) => void;
@@ -43,87 +36,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
-  // GSAP Smooth UI & ScrollTrigger Animations
+  // Subtle & Fast UI Entrance Animations (GPU accelerated, zero scroll jank)
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       // 1. Navigation Header entrance
       gsap.from('.landing-header', {
-        y: -25,
+        y: -15,
         opacity: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-      });
-
-      // 2. Hero Left content staggered entrance
-      const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      heroTl
-        .from('.hero-badge', { y: 20, opacity: 0, duration: 0.6, delay: 0.1 })
-        .from('.hero-title', { y: 30, opacity: 0, duration: 0.8 }, '-=0.35')
-        .from('.hero-desc', { y: 20, opacity: 0, duration: 0.65 }, '-=0.45')
-        .from('.hero-cta-btn', { y: 20, opacity: 0, duration: 0.5, stagger: 0.1 }, '-=0.4')
-        .from('.hero-metrics-item', { y: 20, opacity: 0, duration: 0.6, stagger: 0.1 }, '-=0.35')
-        .from('.hero-trust-strip', { y: 25, opacity: 0, duration: 0.75 }, '-=0.3');
-
-      // 3. Hero 3D Graphic Canvas entrance
-      gsap.from('.hero-3d-wrapper', {
-        scale: 0.92,
-        opacity: 0,
-        duration: 1.1,
+        duration: 0.5,
         ease: 'power2.out',
-        delay: 0.25,
       });
 
-      // 4. Features Section Header ScrollTrigger
-      gsap.from('.features-header', {
-        y: 40,
+      // 2. Hero content entrance
+      gsap.from('.hero-badge, .hero-title, .hero-desc, .hero-cta-btn, .hero-metrics-item, .hero-trust-strip', {
+        y: 15,
         opacity: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '#features',
-          start: 'top 85%',
-          toggleActions: 'play none none reverse',
-        },
-      });
-
-      // 5. Feature Cards Staggered Reveal
-      gsap.from('.feature-card-item', {
-        y: 45,
-        opacity: 0,
-        duration: 0.7,
-        stagger: 0.08,
+        duration: 0.55,
+        stagger: 0.06,
         ease: 'power2.out',
-        scrollTrigger: {
-          trigger: '.feature-grid',
-          start: 'top 85%',
-          toggleActions: 'play none none reverse',
-        },
-      });
-
-      // 6. Workflow / How-It-Works Section
-      gsap.from('.workflow-header', {
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '#how-it-works',
-          start: 'top 85%',
-          toggleActions: 'play none none reverse',
-        },
-      });
-
-      gsap.from('.step-card-item', {
-        y: 50,
-        opacity: 0,
-        duration: 0.8,
-        stagger: 0.12,
-        ease: 'power3.out',
-        scrollTrigger: {
-          trigger: '.workflow-grid',
-          start: 'top 85%',
-          toggleActions: 'play none none reverse',
-        },
       });
     }, mainRef);
 
@@ -288,65 +218,57 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </header>
 
       {/* HERO SECTION */}
-      <section className="relative pt-12 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          {/* Left Text Column */}
-          <div className="lg:col-span-6 space-y-6 text-center lg:text-left">
-            {/* Top Badge */}
-            <div className="hero-badge inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300 text-xs font-normal">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-              <span>Academic Workspace & Structured Study Platform</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="hero-title text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-100 tracking-tight leading-[1.15]">
-              Study with clarity.{' '}
-              <span className="text-slate-300 font-normal">Master your syllabus.</span>
-            </h1>
-
-            {/* Supporting Text */}
-            <p className="hero-desc text-sm sm:text-base text-slate-400 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              A focused workspace designed for students and educators. Organize course notes, clarify complex topics, practice chapter quizzes, and track study consistency.
-            </p>
-
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-3">
-              <button
-                onClick={() => onNavigate('/register')}
-                className="hero-cta-btn w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs border border-blue-400/30 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Create Free Account
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-              <a
-                href="#features"
-                className="hero-cta-btn w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-medium text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                <Play className="w-3.5 h-3.5 text-slate-400" />
-                Explore Platform
-              </a>
-            </div>
-
-            {/* Quick Metrics */}
-            <div className="pt-8 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="hero-metrics-item">
-                <div className="text-xl font-medium text-slate-100">100%</div>
-                <div className="text-xs text-slate-400 font-normal">Modular Workspace</div>
-              </div>
-              <div className="hero-metrics-item">
-                <div className="text-xl font-medium text-blue-400">3 Modes</div>
-                <div className="text-xs text-slate-400 font-normal">Tutor Explanation Depths</div>
-              </div>
-              <div className="hero-metrics-item">
-                <div className="text-xl font-medium text-slate-200">Interactive</div>
-                <div className="text-xs text-slate-400 font-normal">Diagnostic Quizzes</div>
-              </div>
-            </div>
+      <section className="relative pt-16 pb-20 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+        <div className="text-center space-y-6 max-w-3xl mx-auto">
+          {/* Top Badge */}
+          <div className="hero-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-800 text-slate-300 text-xs font-normal shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+            <span>Academic Workspace & Structured Study Platform</span>
           </div>
 
-          {/* Right 3D Visual Canvas */}
-          <div className="hero-3d-wrapper lg:col-span-6 h-[460px] sm:h-[500px] w-full">
-            <LearningNetwork3D />
+          {/* Main Headline */}
+          <h1 className="hero-title text-4xl sm:text-5xl lg:text-6xl font-semibold text-slate-100 tracking-tight leading-[1.15]">
+            Study with clarity.{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 font-medium">Master your syllabus.</span>
+          </h1>
+
+          {/* Supporting Text */}
+          <p className="hero-desc text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed font-normal">
+            A focused workspace designed for students and educators. Organize course notes, clarify complex topics, practice chapter quizzes, and track study consistency.
+          </p>
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
+            <button
+              onClick={() => onNavigate('/register')}
+              className="hero-cta-btn w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs border border-blue-400/30 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Create Free Account
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <a
+              href="#features"
+              className="hero-cta-btn w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white font-medium text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Play className="w-3.5 h-3.5 text-slate-400" />
+              Explore Platform
+            </a>
+          </div>
+
+          {/* Quick Metrics */}
+          <div className="pt-8 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-2xl mx-auto">
+            <div className="hero-metrics-item p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+              <div className="text-xl font-medium text-slate-100">100%</div>
+              <div className="text-xs text-slate-400 font-normal">Modular Workspace</div>
+            </div>
+            <div className="hero-metrics-item p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+              <div className="text-xl font-medium text-blue-400">3 Modes</div>
+              <div className="text-xs text-slate-400 font-normal">Tutor Explanation Depths</div>
+            </div>
+            <div className="hero-metrics-item p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm">
+              <div className="text-xl font-medium text-slate-200">Interactive</div>
+              <div className="text-xs text-slate-400 font-normal">Diagnostic Quizzes</div>
+            </div>
           </div>
         </div>
 

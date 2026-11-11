@@ -255,30 +255,6 @@ export const InteractiveBackground3D: React.FC<InteractiveBackground3DProps> = (
         octaMesh.rotation.y = elapsedTime * 0.2;
         octaMesh.rotation.z = elapsedTime * 0.15;
 
-        // Dynamic 3D interactive ripple:
-        // Particles slightly displace when the mouse coordinates pass near them
-        const positions = particleGeometry.attributes.position.array as Float32Array;
-        const cursorWorldX = targetX * 18;
-        const cursorWorldY = targetY * 14;
-
-        for (let i = 0; i < particleCount; i++) {
-          const origX = originalPos[i * 3];
-          const origY = originalPos[i * 3 + 1];
-          const origZ = originalPos[i * 3 + 2];
-
-          const distToCursor = Math.hypot(origX - cursorWorldX, origY - cursorWorldY);
-
-          // Subtle wave displacement when cursor is within 10 units
-          if (distToCursor < 9) {
-            const force = (9 - distToCursor) / 9;
-            positions[i * 3 + 2] = origZ + Math.sin(elapsedTime * 3 + i) * (force * 2.2);
-          } else {
-            // Gentle harmonic floating drift
-            positions[i * 3 + 2] = origZ + Math.sin(elapsedTime * 0.8 + origX) * 0.4;
-          }
-        }
-        particleGeometry.attributes.position.needsUpdate = true;
-
         if (renderer) {
           renderer.render(scene, camera);
         }
