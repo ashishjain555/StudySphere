@@ -18,11 +18,8 @@ import {
   Shield,
   ChevronRight,
   Play,
-  Sparkles,
   CheckCircle2,
   Zap,
-  Flame,
-  Lightbulb,
 } from 'lucide-react';
 import { InteractiveBackground3D } from '../components/3d/InteractiveBackground3D';
 import { TiltCard3D } from '../components/3d/TiltCard3D';
@@ -39,23 +36,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<'analogy' | 'deep' | 'exam'>('analogy');
   const mainRef = useRef<HTMLDivElement>(null);
 
-  // Smooth GPU Entrance Animations
+  // Fast GPU Entrance Animation
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
-      // 1. Navigation Header
       gsap.from('.landing-header', {
-        y: -15,
+        y: -12,
         opacity: 0,
-        duration: 0.5,
+        duration: 0.45,
         ease: 'power2.out',
       });
 
-      // 2. Hero content
       gsap.from('.hero-badge, .hero-title, .hero-desc, .hero-cta-btn, .hero-metrics-item, .hero-preview-card', {
-        y: 16,
+        y: 14,
         opacity: 0,
-        duration: 0.55,
-        stagger: 0.06,
+        duration: 0.5,
+        stagger: 0.05,
         ease: 'power2.out',
       });
     }, mainRef);
@@ -67,49 +62,49 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
     {
       icon: MessageSquare,
       title: 'AI Concept Tutor',
-      description: 'Ask any doubt in plain English. Get clear step-by-step explanations with intuitive real-world analogies until it clicks.',
+      description: 'Ask any doubt in plain words. Get step-by-step explanations with easy real-world examples until it clicks.',
       tag: 'Tutor',
     },
     {
       icon: FileText,
-      title: 'Smart PDF Summaries',
-      description: 'Drop in your lecture slides or heavy textbook chapters. Get concise summaries, bullet notes, and formulas in seconds.',
+      title: 'Smart PDF Notes',
+      description: 'Upload your textbooks or lecture slides. Get concise summaries, bullet points, and key formulas instantly.',
       tag: 'Notes',
     },
     {
       icon: HelpCircle,
       title: 'Practice Quizzes',
-      description: 'Test your memory before exams with custom multiple-choice drills and instant answer explanations.',
+      description: 'Test your memory before exams with custom multiple-choice questions and instant answer explanations.',
       tag: 'Practice',
     },
     {
       icon: Calendar,
       title: 'Study Planner',
-      description: 'Map out your study schedule before midterms and finals. Track your daily streaks and stay on target effortlessly.',
+      description: 'Schedule daily study hours, set exam target dates, and keep track of your daily learning streak.',
       tag: 'Planner',
     },
     {
       icon: TrendingUp,
       title: 'Progress Analytics',
-      description: 'Visual charts showing your weekly study hours, syllabus completion, and quiz accuracy across all courses.',
+      description: 'Simple charts showing your study hours, syllabus completion, and quiz accuracy across all subjects.',
       tag: 'Analytics',
     },
     {
       icon: AlertTriangle,
-      title: 'Weak Topic Radar',
-      description: 'Automatically detects concepts where your quiz accuracy dips and creates targeted revision sessions.',
+      title: 'Weak Topic Alerts',
+      description: 'Automatically finds topics where your quiz scores dropped so you can revise them before test day.',
       tag: 'Diagnostics',
     },
     {
       icon: FolderOpen,
-      title: 'Organized Library',
-      description: 'Keep all your notes, chapter references, and question banks neatly categorized by subject in one place.',
+      title: 'Subject Library',
+      description: 'Keep all your notes, chapter references, and practice materials organized neatly by subject.',
       tag: 'Library',
     },
     {
       icon: Search,
       title: 'Instant Search',
-      description: 'Find any formula, concept, or past test question in a split second with lightning-fast search.',
+      description: 'Search and find any formula, concept, or past question across all your notes in seconds.',
       tag: 'Search',
     },
   ];
@@ -117,46 +112,46 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
   const steps = [
     {
       number: '01',
-      title: 'Pick a Subject or Upload Notes',
-      description: 'Choose any subject from your syllabus or drop in lecture slides and textbooks to begin.',
+      title: 'Select a Subject or Upload Notes',
+      description: 'Pick any subject from your course or drop in lecture slides and PDF notes.',
       icon: FolderOpen,
     },
     {
       number: '02',
-      title: 'Clear Any Confusing Doubt',
-      description: 'Ask your questions freely and get crystal-clear breakdowns tailored to how you learn best.',
+      title: 'Clear Hard Doubts Step-by-Step',
+      description: 'Ask questions freely and get simple explanations tailored to how you understand best.',
       icon: MessageSquare,
     },
     {
       number: '03',
-      title: 'Practice with Instant Quizzes',
-      description: 'Test your recall with custom exam-style questions and see clear explanations for every option.',
+      title: 'Test Yourself with Quick Quizzes',
+      description: 'Practice exam-style questions to make sure concepts are firmly locked in memory.',
       icon: HelpCircle,
     },
     {
       number: '04',
-      title: 'Conquer Weak Spots Before Exams',
-      description: 'Review automatically flagged tricky topics so you walk into test day feeling 100% prepared.',
+      title: 'Fix Weak Areas Before Exams',
+      description: 'Review the exact questions you got wrong to walk into your exam 100% prepared.',
       icon: TrendingUp,
     },
   ];
 
   return (
-    <main id="main-content" ref={mainRef} className="min-h-screen bg-[#07090E] text-[#FFFFFF] selection:bg-indigo-600 selection:text-white relative">
+    <main id="main-content" ref={mainRef} className="min-h-screen bg-[#0A0C10] text-[#FFFFFF] selection:bg-blue-600 selection:text-white relative">
       {/* Keyboard Accessibility Skip Link */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-50 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold shadow-lg focus:outline-none"
       >
         Skip to main content
       </a>
 
-      {/* Ambient 3D Starfield & Constellation Background with Cursor Light */}
+      {/* Subtle 3D Starfield Background */}
       <InteractiveBackground3D intensity="subtle" />
 
       {/* Navigation Header */}
-      <header className="landing-header sticky top-0 z-40 w-full bg-[#07090E]/90 border-b border-white/[0.08] backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <header className="landing-header sticky top-0 z-40 w-full bg-[#0A0C10]/95 border-b border-white/[0.08] backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           {/* Brand Logo */}
           <a
             href="/"
@@ -169,15 +164,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           >
             <BrandLogo size="md" />
             <div>
-              <span className="text-base font-bold text-white tracking-tight group-hover:text-indigo-400 transition-colors">StudySphere</span>
-              <span className="hidden sm:block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-semibold">
-                AI Workspace
+              <span className="text-base font-bold text-white tracking-tight group-hover:text-blue-400 transition-colors">StudySphere</span>
+              <span className="hidden sm:block text-[10px] uppercase font-mono tracking-wider text-slate-400 font-medium">
+                Study Workspace
               </span>
             </div>
           </a>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-300">
+          <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-slate-300">
             <a href="#features" className="hover:text-white transition-colors">
               Features
             </a>
@@ -192,7 +187,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             </button>
             <button
               onClick={() => setIsFeedbackOpen(true)}
-              className="px-2.5 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 hover:text-white transition-colors cursor-pointer border border-indigo-500/25 font-semibold"
+              className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white transition-colors cursor-pointer border border-white/10 font-medium"
             >
               Feedback
             </button>
@@ -202,13 +197,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => onNavigate('/login')}
-              className="text-xs font-semibold text-slate-300 hover:text-white transition-colors px-3 py-2 cursor-pointer"
+              className="text-xs font-medium text-slate-300 hover:text-white transition-colors px-3 py-2 cursor-pointer"
             >
               Sign In
             </button>
             <button
               onClick={() => onNavigate('/register')}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold text-xs border border-white/10 flex items-center gap-2 transition-all cursor-pointer shadow-lg shadow-indigo-600/30 hover:scale-[1.02]"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs border border-blue-500/30 flex items-center gap-2 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
             >
               Get Started Free
               <ArrowRight className="w-3.5 h-3.5" />
@@ -219,179 +214,165 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
       {/* HERO SECTION */}
       <section className="relative pt-16 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Soft Ambient Spotlight Glows */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-5xl h-[500px] bg-gradient-to-b from-violet-600/15 via-indigo-600/10 to-transparent blur-3xl pointer-events-none -z-10" />
-        <div className="absolute top-1/3 right-10 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none -z-10" />
+        {/* Soft Single-Color Ambient Light */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-full max-w-4xl h-[400px] bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          {/* Left Column: Punchy Student Value Proposition */}
+          {/* Left Column: Simple & Clear Copy */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             {/* Top Pill Badge */}
-            <div className="hero-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/25 text-violet-300 text-xs font-semibold shadow-sm backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
-              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-              <span>Built for students who want to score higher</span>
+            <div className="hero-badge inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-slate-300 text-xs font-medium backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              <span>StudySphere • Smart Study Platform</span>
             </div>
 
             {/* Main Headline */}
-            <h1 className="hero-title text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.12]">
-              Ace your syllabus.{' '}
-              <span className="block mt-1 text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-sky-300 to-indigo-300 font-extrabold">
-                Without the late-night panic.
+            <h1 className="hero-title text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.14]">
+              Study smarter. Ace your exams.{' '}
+              <span className="block mt-2 text-blue-400">
+                Without the last-minute stress.
               </span>
             </h1>
 
             {/* Supporting Copy */}
             <p className="hero-desc text-sm sm:text-base text-slate-300 max-w-xl mx-auto lg:mx-0 leading-relaxed font-normal">
-              Stuck on a tricky concept at 2 AM? Clear doubts instantly with step-by-step guidance, turn heavy lecture PDFs into sharp summaries, and practice real exam questions until you feel 100% confident.
+              Clear your toughest doubts with step-by-step guidance, turn lecture PDFs into quick summaries, and practice exam questions with topic quizzes.
             </p>
 
-            {/* CTAs */}
+            {/* CTAs - Solid, Simple, Identical Colors */}
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 pt-2">
               <button
                 onClick={() => onNavigate('/register')}
-                className="hero-cta-btn w-full sm:w-auto px-7 py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold text-xs sm:text-sm border border-white/10 flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xl shadow-indigo-600/35 hover:scale-[1.02] active:scale-[0.98]"
+                className="hero-cta-btn w-full sm:w-auto px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs sm:text-sm border border-blue-500/30 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm hover:scale-[1.02]"
               >
                 Start Studying Free
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
               <a
                 href="#features"
-                className="hero-cta-btn w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="hero-cta-btn w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
               >
-                <Play className="w-3.5 h-3.5 text-indigo-400" />
+                <Play className="w-3.5 h-3.5 text-blue-400" />
                 Explore Features
               </a>
             </div>
 
-            {/* Quick Metrics */}
+            {/* Simple Metrics Strip */}
             <div className="pt-6 border-t border-white/[0.08] grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
-              <div className="hero-metrics-item p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
+              <div className="hero-metrics-item p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.08]">
                 <div className="text-xl font-bold text-white font-mono">24/7</div>
-                <div className="text-xs text-slate-400 font-medium">Instant Doubt Solver</div>
+                <div className="text-xs text-slate-400 font-normal">Instant Doubt Solver</div>
               </div>
-              <div className="hero-metrics-item p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
-                <div className="text-xl font-bold text-violet-400 font-mono">1-Click</div>
-                <div className="text-xs text-slate-400 font-medium">PDF Chapter Notes</div>
+              <div className="hero-metrics-item p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.08]">
+                <div className="text-xl font-bold text-blue-400 font-mono">1-Click</div>
+                <div className="text-xs text-slate-400 font-normal">PDF Chapter Notes</div>
               </div>
-              <div className="hero-metrics-item p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
-                <div className="text-xl font-bold text-sky-400 font-mono">100% Free</div>
-                <div className="text-xs text-slate-400 font-medium">For All Students</div>
+              <div className="hero-metrics-item p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.08]">
+                <div className="text-xl font-bold text-white font-mono">100% Free</div>
+                <div className="text-xs text-slate-400 font-normal">For All Students</div>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Sassy 3D Tilt Interactive Study Card */}
+          {/* Right Column: Clean & Grounded Study Preview Card */}
           <div className="lg:col-span-5 flex items-center justify-center">
-            <TiltCard3D maxTilt={10} className="w-full max-w-[440px]">
-              <div className="hero-preview-card relative p-6 rounded-3xl bg-[#0D1224]/90 border border-white/[0.12] backdrop-blur-2xl shadow-2xl space-y-4">
-                {/* Floating 3D Badge (Top Right) */}
-                <div className="absolute -top-3 -right-3 z-30 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-indigo-950/90 border border-indigo-500/40 shadow-lg shadow-indigo-950/60 text-[11px] font-bold text-indigo-200">
-                  <Flame className="w-3.5 h-3.5 text-amber-400" />
-                  <span>5-Day Streak 🔥</span>
-                </div>
-
-                {/* Card Header with macOS Dots & Session Status */}
+            <TiltCard3D maxTilt={6} className="w-full max-w-[440px]">
+              <div className="hero-preview-card relative p-6 rounded-2xl bg-[#12151F] border border-white/10 shadow-xl space-y-4">
+                {/* Header: Window Dots & Status */}
                 <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
                   <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-white/20" />
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-slate-300 font-mono text-[10px]">Physics 101 • Quantum</span>
+                  <div className="flex items-center gap-2 text-xs text-slate-300">
+                    <span className="w-2 h-2 rounded-full bg-blue-400" />
+                    <span className="font-mono text-[11px] text-slate-400">Physics 101 • Quantum</span>
                   </div>
                 </div>
 
                 {/* Student Question Box */}
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0 text-xs font-bold">
-                    Q
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-mono text-indigo-300 font-bold tracking-wider">Student Doubt</span>
-                    <p className="text-xs text-white font-medium mt-0.5">
-                      "Can you explain Heisenberg's Uncertainty Principle with an everyday analogy?"
-                    </p>
-                  </div>
+                <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                  <span className="text-[10px] uppercase font-mono text-blue-400 font-semibold tracking-wider">Student Doubt</span>
+                  <p className="text-xs text-white font-medium mt-1">
+                    "Can you explain Heisenberg's Uncertainty Principle with an everyday analogy?"
+                  </p>
                 </div>
 
-                {/* AI Tutor Response Box */}
-                <div className="p-3.5 rounded-xl bg-indigo-950/30 border border-indigo-500/20 space-y-2">
+                {/* Explanation Box */}
+                <div className="p-3.5 rounded-xl bg-blue-950/20 border border-blue-500/20 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-violet-300">
-                      <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                      Step-by-Step Breakdown
+                    <span className="text-xs font-semibold text-blue-300">
+                      Step-by-Step Explanation
                     </span>
-                    <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                      Exam High-Yield
+                    <span className="text-[10px] font-mono text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                      Key Concept
                     </span>
                   </div>
                   <p className="text-xs text-slate-300 leading-relaxed">
                     {activeTab === 'analogy' && (
                       <>
-                        <strong className="text-white">Camera Analogy:</strong> Imagine snapping a fast sports car in low light. A ultra-fast shutter reveals its exact position, but not speed. A slow shutter captures speed blur, but smears location. In nature, measuring one always blurs the other.
+                        <strong className="text-white">Camera Analogy:</strong> If you take a picture of a fast-moving car with a high shutter speed, you know its exact position, but not its speed. If you use a slow shutter, you see speed blur, but lose its exact position. In physics, measuring position always blurs momentum.
                       </>
                     )}
                     {activeTab === 'deep' && (
                       <>
-                        <strong className="text-white">Formula:</strong> <code className="text-violet-300 font-mono">Δx · Δp ≥ ℏ / 2</code>. Position and momentum are Fourier-transform conjugate variables. A localized wave packet requires a wide spectrum of wavenumbers.
+                        <strong className="text-white">Formula:</strong> <code className="text-blue-300 font-mono">Δx · Δp ≥ ℏ / 2</code>. Position and momentum are conjugate variables. Localizing a particle in space inevitably widens its momentum distribution.
                       </>
                     )}
                     {activeTab === 'exam' && (
                       <>
-                        <strong className="text-white">Key Exam Takeaway:</strong> Never say "the measuring instrument is imperfect." The uncertainty is an intrinsic wave property of matter itself, not an equipment flaw!
+                        <strong className="text-white">Exam Tip:</strong> Never attribute uncertainty to "poor measurement equipment." Uncertainty is an intrinsic fundamental wave property of nature itself.
                       </>
                     )}
                   </p>
                 </div>
 
-                {/* Interactive Explanation Depth Toggle */}
-                <div className="flex items-center gap-1.5 pt-1">
+                {/* Clean Simple Depth Buttons (All Uniform) */}
+                <div className="flex items-center gap-2 pt-1">
                   <button
                     onClick={() => setActiveTab('analogy')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'analogy'
-                        ? 'bg-indigo-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white'
                         : 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06]'
                     }`}
                   >
-                    💡 Analogy
+                    Analogy
                   </button>
                   <button
                     onClick={() => setActiveTab('deep')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'deep'
-                        ? 'bg-indigo-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white'
                         : 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06]'
                     }`}
                   >
-                    📘 Deep Math
+                    Detailed Math
                   </button>
                   <button
                     onClick={() => setActiveTab('exam')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                       activeTab === 'exam'
-                        ? 'bg-indigo-600 text-white shadow-sm'
+                        ? 'bg-blue-600 text-white'
                         : 'bg-white/[0.04] text-slate-400 hover:text-white border border-white/[0.06]'
                     }`}
                   >
-                    🎯 Exam Tips
+                    Exam Tips
                   </button>
                 </div>
 
-                {/* Mini Quiz Practice Preview */}
+                {/* Bottom Status */}
                 <div className="pt-2 border-t border-white/[0.08] flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span className="text-slate-300 text-[11px] font-medium">Diagnostic Recall: <strong className="text-white">96% Accuracy</strong></span>
+                  <div className="flex items-center gap-1.5 text-slate-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Practice Recall: <strong className="text-white">96% Accuracy</strong></span>
                   </div>
                   <button
                     onClick={() => onNavigate('/register')}
-                    className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer"
                   >
-                    Try It Free <ChevronRight className="w-3 h-3" />
+                    Try Free <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
               </div>
@@ -399,38 +380,37 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Feature Trust Strip */}
-        <div className="hero-trust-strip mt-16 py-4 px-6 rounded-2xl bg-[#0D1224]/80 border border-white/[0.08] shadow-xl flex flex-wrap items-center justify-around gap-6 text-xs text-slate-300 backdrop-blur-xl">
-          <span className="flex items-center gap-2 font-semibold">
-            <Zap className="w-4 h-4 text-violet-400" /> Instant Concept Answers
+        {/* Feature Trust Strip - Clean Single Accent */}
+        <div className="hero-trust-strip mt-16 py-4 px-6 rounded-xl bg-[#12151F] border border-white/[0.08] flex flex-wrap items-center justify-around gap-6 text-xs text-slate-300">
+          <span className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-blue-400" /> Instant Doubt Solving
           </span>
           <span className="text-white/20">•</span>
-          <span className="flex items-center gap-2 font-semibold">
-            <BookOpen className="w-4 h-4 text-indigo-400" /> PDF Chapter Summaries
+          <span className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-blue-400" /> PDF Chapter Notes
           </span>
           <span className="text-white/20">•</span>
-          <span className="flex items-center gap-2 font-semibold">
-            <TrendingUp className="w-4 h-4 text-sky-400" /> Topic-Wise Diagnostic Quizzes
+          <span className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-400" /> Topic-Wise Quizzes
           </span>
           <span className="text-white/20">•</span>
-          <span className="flex items-center gap-2 font-semibold">
-            <Shield className="w-4 h-4 text-emerald-400" /> Weak Topic Radar
+          <span className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-blue-400" /> Weak Topic Tracking
           </span>
         </div>
       </section>
 
       {/* FEATURES SECTION */}
       <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.08]">
-        <div className="features-header text-center max-w-3xl mx-auto mb-16 space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-violet-400 flex items-center justify-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-            Everything You Need
+        <div className="features-header text-center max-w-3xl mx-auto mb-16 space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">
+            Features
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            All-in-one workspace for your studies
           </h2>
-          <p className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            Built to Help You Study Faster & Score Higher
-          </p>
-          <p className="text-slate-300 text-sm max-w-xl mx-auto font-normal">
-            No cluttered tabs or random video tutorials. Everything is structured cleanly around your syllabus.
+          <p className="text-slate-400 text-sm max-w-xl mx-auto font-normal">
+            Everything organized cleanly by subject so you can study without distraction.
           </p>
         </div>
 
@@ -439,27 +419,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             const IconComponent = card.icon;
             return (
               <div key={idx} className="feature-card-item h-full">
-                <TiltCard3D className="h-full">
+                <TiltCard3D maxTilt={5} className="h-full">
                   <div
-                    className="h-full p-6 rounded-2xl bg-[#0D1224]/80 border border-white/[0.08] hover:border-violet-500/40 backdrop-blur-xl flex flex-col justify-between transition-all duration-300 group shadow-xl hover:shadow-violet-500/10"
+                    className="h-full p-6 rounded-2xl bg-[#12151F] border border-white/[0.08] hover:border-blue-500/40 flex flex-col justify-between transition-colors group"
                   >
                     <div>
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 group-hover:text-sky-300 group-hover:border-sky-500/40 transition-colors">
+                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                           <IconComponent className="w-5 h-5" />
                         </div>
-                        <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-white/[0.05] text-slate-300 border border-white/10">
+                        <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-white/[0.04] text-slate-300 border border-white/10">
                           {card.tag}
                         </span>
                       </div>
-                      <h3 className="text-base font-bold text-white mb-2 group-hover:text-violet-300 transition-colors">
+                      <h3 className="text-base font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
                         {card.title}
                       </h3>
-                      <p className="text-xs text-slate-300 leading-relaxed font-normal">{card.description}</p>
+                      <p className="text-xs text-slate-400 leading-relaxed font-normal">{card.description}</p>
                     </div>
                     <button
                       onClick={() => onNavigate('/register')}
-                      className="mt-5 text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 group-hover:translate-x-1 transition-all cursor-pointer"
+                      className="mt-5 text-xs font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer"
                     >
                       Try Feature <ChevronRight className="w-3.5 h-3.5" />
                     </button>
@@ -473,11 +453,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
 
       {/* HOW IT WORKS SECTION */}
       <section id="workflow" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-white/[0.08]">
-        <div className="workflow-header text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-violet-400">
-            Simple 4-Step Process
-          </h2>
-          <p className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">How You Master Any Subject</p>
+        <div className="workflow-header text-center max-w-2xl mx-auto mb-16 space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">
+            How It Works
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Simple 4-Step Process</h2>
         </div>
 
         <div className="workflow-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
@@ -485,18 +465,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
             const StepIcon = step.icon;
             return (
               <div key={index} className="step-card-item h-full">
-                <TiltCard3D className="h-full">
-                  <div className="h-full p-6 rounded-2xl bg-[#0D1224]/80 border border-white/[0.08] hover:border-violet-500/40 backdrop-blur-xl space-y-4 shadow-xl hover:shadow-violet-500/10 transition-all">
+                <TiltCard3D maxTilt={5} className="h-full">
+                  <div className="h-full p-6 rounded-2xl bg-[#12151F] border border-white/[0.08] hover:border-blue-500/40 space-y-4 transition-colors">
                     <div className="flex items-center justify-between">
-                      <span className="text-2xl font-mono text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400 font-extrabold">
+                      <span className="text-2xl font-mono text-blue-400 font-bold">
                         {step.number}
                       </span>
-                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400">
+                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                         <StepIcon className="w-5 h-5" />
                       </div>
                     </div>
-                    <h3 className="text-base font-bold text-white">{step.title}</h3>
-                    <p className="text-xs text-slate-300 leading-relaxed font-normal">{step.description}</p>
+                    <h3 className="text-base font-semibold text-white">{step.title}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed font-normal">{step.description}</p>
                   </div>
                 </TiltCard3D>
               </div>
@@ -506,28 +486,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
       </section>
 
       {/* FOOTER */}
-      <footer className="landing-footer py-10 border-t border-white/[0.08] bg-[#05070B] text-xs text-slate-400">
+      <footer className="landing-footer py-10 border-t border-white/[0.08] bg-[#07090D] text-xs text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <BrandLogo size="sm" />
-            <span className="font-bold text-white text-xs">StudySphere</span>
+            <span className="font-semibold text-white text-xs">StudySphere</span>
           </div>
-          <div className="flex flex-wrap items-center gap-5 sm:gap-6 text-slate-300 text-xs font-medium">
+          <div className="flex flex-wrap items-center gap-5 sm:gap-6 text-slate-400 text-xs">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#workflow" className="hover:text-white transition-colors">How It Works</a>
             <button onClick={() => setIsAboutOpen(true)} className="hover:text-white transition-colors cursor-pointer">About Us</button>
             <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="/terms" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Terms</a>
-            <button onClick={() => setIsFeedbackOpen(true)} className="hover:text-indigo-300 text-indigo-400 font-semibold transition-colors cursor-pointer">Give Feedback</button>
+            <button onClick={() => setIsFeedbackOpen(true)} className="hover:text-blue-400 text-slate-300 transition-colors cursor-pointer">Give Feedback</button>
             <button onClick={() => onNavigate('/login')} className="hover:text-white transition-colors cursor-pointer">Sign In</button>
           </div>
-          <div className="text-slate-400 text-[11px]">
-            © {new Date().getFullYear()} StudySphere. Built for curious minds.
+          <div className="text-slate-500 text-[11px]">
+            © {new Date().getFullYear()} StudySphere. All rights reserved.
           </div>
         </div>
       </footer>
 
-      {/* About Modal */}
+      {/* Modals */}
       <AboutModal
         isOpen={isAboutOpen}
         onClose={() => setIsAboutOpen(false)}
@@ -535,7 +515,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         onOpenFeedback={() => setIsFeedbackOpen(true)}
       />
 
-      {/* Privacy Policy Modal */}
       <PrivacyPolicyModal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
@@ -543,7 +522,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate }) => {
         onOpenFeedback={() => setIsFeedbackOpen(true)}
       />
 
-      {/* Feedback Modal */}
       <FeedbackModal
         isOpen={isFeedbackOpen}
         onClose={() => setIsFeedbackOpen(false)}

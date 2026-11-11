@@ -41,30 +41,29 @@ export const InteractiveBackground3D: React.FC<InteractiveBackground3DProps> = (
       renderer.setPixelRatio(isMobile ? 1.0 : Math.min(window.devicePixelRatio || 1, 1.5));
       container.appendChild(renderer.domElement);
 
-      // 3. Lighting Setup
-      const cursorLight = new THREE.PointLight(0x38bdf8, intensity === 'vibrant' ? 3 : 2, 45);
+      // 3. Lighting Setup - Calm & Single Blue Tone
+      const cursorLight = new THREE.PointLight(0x3b82f6, intensity === 'vibrant' ? 2 : 1.4, 45);
       cursorLight.position.set(0, 0, 18);
       scene.add(cursorLight);
 
-      const secondaryLight = new THREE.PointLight(0xa855f7, intensity === 'vibrant' ? 2.5 : 1.8, 40);
+      const secondaryLight = new THREE.PointLight(0x60a5fa, intensity === 'vibrant' ? 1.5 : 1.0, 40);
       secondaryLight.position.set(-15, 10, 12);
       scene.add(secondaryLight);
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
       scene.add(ambientLight);
 
-      // 4. Dynamic Particle System (Neural Constellation)
-      const particleCount = isMobile ? (intensity === 'vibrant' ? 90 : 60) : (intensity === 'vibrant' ? 220 : 160);
+      // 4. Dynamic Particle System (Clean Single-Tone Constellation)
+      const particleCount = isMobile ? (intensity === 'vibrant' ? 70 : 45) : (intensity === 'vibrant' ? 160 : 110);
       const posArray = new Float32Array(particleCount * 3);
       const originalPos = new Float32Array(particleCount * 3);
       const colArray = new Float32Array(particleCount * 3);
 
       const colorPalette = [
-        new THREE.Color('#38bdf8'), // Sky Blue
-        new THREE.Color('#6366f1'), // Indigo
-        new THREE.Color('#a855f7'), // Purple
-        new THREE.Color('#34d399'), // Emerald
-        new THREE.Color('#06b6d4'), // Cyan
+        new THREE.Color('#3b82f6'), // Clean Blue
+        new THREE.Color('#60a5fa'), // Light Blue
+        new THREE.Color('#94a3b8'), // Slate Gray
+        new THREE.Color('#cbd5e1'), // Silver
       ];
 
       for (let i = 0; i < particleCount; i++) {
@@ -141,9 +140,9 @@ export const InteractiveBackground3D: React.FC<InteractiveBackground3DProps> = (
       lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
 
       const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0x6366f1,
+        color: 0x3b82f6,
         transparent: true,
-        opacity: intensity === 'vibrant' ? 0.22 : 0.14,
+        opacity: intensity === 'vibrant' ? 0.16 : 0.09,
         blending: THREE.AdditiveBlending,
       });
 
