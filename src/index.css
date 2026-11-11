@@ -3,32 +3,32 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
 /* ==========================================================================
-   STUDYSPHERE VIBRANT ELECTRIC OBSIDIAN DESIGN TOKENS
-   Deep Cosmic Obsidian + Radiant Electric Indigo & Violet Nebula
-   Rich visual depth • Tactile Glassmorphism • Buttery 60fps Performance
+   STUDYSPHERE SASSY LUXURY OBSIDIAN DESIGN SYSTEM
+   Midnight Velvet Canvas • High-Contrast Razor-Sharp Typography • Sassy Accents
+   Ultra-responsive • Zero lag • 60-120 FPS
    ========================================================================== */
 
 :root, .dark, [data-theme="dark"] {
-  --bg-primary: #070913;
-  --bg-secondary: #0D1224;
-  --bg-card: #11182E;
-  --border-subtle: rgba(99, 102, 241, 0.14);
-  --border-default: rgba(99, 102, 241, 0.24);
-  --text-primary: #F8FAFC;
-  --text-secondary: #94A3B8;
-  --text-muted: #64748B;
-  --accent-primary: #4F46E5;
-  --accent-hover: #4338CA;
-  --accent-surface: rgba(79, 70, 229, 0.16);
+  --bg-primary: #07090E;
+  --bg-secondary: #0D111A;
+  --bg-card: #111726;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.14);
+  --text-primary: #FFFFFF;
+  --text-secondary: #E2E8F0;
+  --text-muted: #94A3B8;
+  --accent-primary: #6366F1;
+  --accent-hover: #4F46E5;
+  --accent-surface: rgba(99, 102, 241, 0.16);
   --accent-border: rgba(99, 102, 241, 0.35);
   --accent-text: #A5B4FC;
-  --card-bg: rgba(13, 18, 36, 0.75);
+  --card-bg: rgba(14, 19, 34, 0.85);
   --card-border: rgba(255, 255, 255, 0.09);
-  --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
-  --panel-bg: rgba(9, 13, 27, 0.88);
-  --scrollbar-track: #070913;
-  --scrollbar-thumb: #1E2548;
-  --scrollbar-thumb-hover: #312E81;
+  --card-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.7);
+  --panel-bg: rgba(10, 14, 25, 0.94);
+  --scrollbar-track: #07090E;
+  --scrollbar-thumb: #1E2638;
+  --scrollbar-thumb-hover: #333F5C;
   color-scheme: dark;
 }
 
@@ -36,9 +36,8 @@
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    font-weight: 380;
-    letter-spacing: -0.012em;
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.015em;
     overflow-x: hidden;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
@@ -47,39 +46,17 @@
 
   code, kbd, samp, pre, .font-mono {
     font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-weight: 420;
     letter-spacing: -0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 550 !important;
+    font-weight: 700;
     letter-spacing: -0.025em;
   }
 
-  /* Human-crafted icon stroke weight */
   svg.lucide {
-    stroke-width: 1.65px;
+    stroke-width: 1.75px;
   }
-}
-
-/* ==========================================================================
-   DEVELOPER TYPOGRAPHY CALIBRATION
-   Thin down heavy, clumsy weights so the UI feels engineered & crisp
-   ========================================================================== */
-.font-black, .font-extrabold {
-  font-weight: 580 !important;
-}
-
-.font-bold {
-  font-weight: 520 !important;
-}
-
-.font-semibold {
-  font-weight: 480 !important;
-}
-
-.font-medium {
-  font-weight: 420 !important;
 }
 
 /* Custom Scrollbars */
@@ -98,140 +75,71 @@
   background: var(--scrollbar-thumb-hover);
 }
 
-/* Clean, Human-Crafted Surface Panels & Cards */
+/* Sassy Glass Panels & Cards */
 .glass-panel {
   background: var(--panel-bg);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--card-border);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-subtle);
 }
 
 .glass-card {
   background: var(--card-bg);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--card-border);
   box-shadow: var(--card-shadow);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.35);
-  box-shadow: 0 8px 30px -4px rgba(99, 102, 241, 0.22);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 12px 35px -5px rgba(99, 102, 241, 0.25);
 }
 
-/* Radiant Indigo-Violet & Cyber Gradient Text */
-.gradient-text {
-  background: linear-gradient(135deg, #FFFFFF 15%, #C7D2FE 55%, #818CF8 100%);
+/* Sassy High-Contrast Text Gradients */
+.gradient-text-sassy {
+  background: linear-gradient(135deg, #FFFFFF 20%, #DDD6FE 60%, #A78BFA 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gradient-text-aurora {
-  background: linear-gradient(135deg, #38BDF8 0%, #818CF8 45%, #C084FC 80%, #F472B6 100%);
+.gradient-text-electric {
+  background: linear-gradient(135deg, #C4B5FD 0%, #60A5FA 50%, #38BDF8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Atmospheric Glow Effects */
+.gradient-text-gold {
+  background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Soft Atmosphere Glows */
 .glow-indigo {
-  box-shadow: 0 0 25px -4px rgba(99, 102, 241, 0.4) !important;
+  box-shadow: 0 0 35px -5px rgba(99, 102, 241, 0.35) !important;
 }
 
 .glow-violet {
-  box-shadow: 0 0 25px -4px rgba(139, 92, 246, 0.4) !important;
+  box-shadow: 0 0 35px -5px rgba(139, 92, 246, 0.35) !important;
 }
 
-.glow-sapphire {
-  box-shadow: 0 0 25px -4px rgba(56, 189, 248, 0.35) !important;
+.glow-cyan {
+  box-shadow: 0 0 35px -5px rgba(56, 189, 248, 0.35) !important;
 }
 
-/* Keyframes - Soft & Gentle */
-@keyframes floatSlow {
+/* Gentle Float Animation */
+@keyframes floatGentle {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-5px); }
 }
 
-.animate-float {
-  animation: floatSlow 5s ease-in-out infinite;
+.animate-float-gentle {
+  animation: floatGentle 4.5s ease-in-out infinite;
 }
 
-/* ==========================================================================
-   SOLID, TACTILE, HUMAN BUTTON STYLING (NO GLOWING / BLURRED HALOS)
-   ========================================================================== */
-
-/* Universal kill-switch for colored neon button shadows */
-[class*="shadow-blue"],
-[class*="shadow-indigo"],
-[class*="shadow-violet"],
-[class*="shadow-purple"],
-[class*="shadow-red"] {
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35) !important;
-}
-
-/* Primary Action Buttons: Solid, Matte, Tactile with Fine Hairline Border */
-.bg-blue-600, .bg-indigo-600 {
-  background-color: #2563EB !important;
-  color: #FFFFFF !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-}
-
-.hover\:bg-blue-700:hover,
-.hover\:bg-blue-500:hover,
-.hover\:bg-indigo-500:hover {
-  background-color: #1D4ED8 !important;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.35) !important;
-}
-
-/* Calm Badge & Accent Chip Overrides (Eye-friendly, not blinding) */
-.bg-blue-500\/20, .bg-blue-600\/20, .bg-blue-600\/15, .bg-blue-500\/15, .bg-blue-500\/10,
-.bg-indigo-500\/20, .bg-indigo-600\/20, .bg-indigo-600\/15, .bg-indigo-500\/10 {
-  background-color: rgba(37, 99, 235, 0.12) !important;
-  color: #93C5FD !important;
-}
-
-.border-blue-500\/30, .border-blue-500\/40, .border-blue-500\/50, .border-blue-400,
-.border-indigo-500\/30, .border-indigo-500\/40, .border-indigo-500\/50 {
-  border-color: rgba(59, 130, 246, 0.28) !important;
-}
-
-.text-blue-400, .text-indigo-400 {
-  color: #60A5FA !important;
-}
-
-.text-blue-300, .text-indigo-300 {
-  color: #93C5FD !important;
-}
-
-/* Replace saturated multi-color gradients on buttons with calm solid gradients */
-.from-blue-600.to-indigo-600,
-.from-indigo-600.to-blue-600,
-.from-indigo-600.to-violet-600 {
-  --tw-gradient-from: #2563EB !important;
-  --tw-gradient-stops: #2563EB, #1D4ED8 !important;
-  --tw-gradient-to: #1D4ED8 !important;
-}
-
-/* Clean Surfaces & Borders */
-.bg-gray-950 {
-  background-color: #0A0D14 !important;
-}
-
-.bg-gray-900 {
-  background-color: #111520 !important;
-}
-
-.bg-gray-850, .bg-gray-800 {
-  background-color: #171D2A !important;
-}
-
-.border-gray-800 {
-  border-color: #1C2333 !important;
-}
-
-.border-gray-700 {
-  border-color: #252F45 !important;
-}
-
+/* Progress and Scale */
 @keyframes googleProgress {
   0% { transform: translateX(-100%); width: 30%; }
   50% { transform: translateX(50%); width: 60%; }
@@ -239,16 +147,11 @@
 }
 
 @keyframes scaleIn {
-  0% { transform: scale(0.6); opacity: 0; }
+  0% { transform: scale(0.85); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 
-/* ==========================================================================
-   BUTTER-SMOOTH CLICK FEEDBACK & MODAL OPENING ANIMATIONS
-   Tactile haptic visual response across all buttons, cards & modals
-   ========================================================================== */
-
-/* Universal tactile button & clickable element feedback */
+/* Universal tactile button feedback */
 button,
 [role="button"],
 input[type="submit"],
@@ -258,32 +161,21 @@ input[type="button"],
               background-color 0.15s ease,
               border-color 0.15s ease,
               box-shadow 0.15s ease,
-              opacity 0.15s ease !important;
+              opacity 0.15s ease;
 }
 
 button:active:not(:disabled),
 [role="button"]:active:not(:disabled),
 input[type="submit"]:active:not(:disabled),
 input[type="button"]:active:not(:disabled) {
-  transform: scale(0.96) translateY(1px) !important;
+  transform: scale(0.97) translateY(1px);
 }
 
-/* Smooth Interactive Cards Click Response */
-.glass-card,
-.glass-panel {
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-              border-color 0.2s ease,
-              box-shadow 0.2s ease !important;
-}
-
-/* Butter-Smooth Pop-In Animation for All Modals & Dialogs */
+/* Butter-Smooth Modal & Element Animations */
 @keyframes smoothModalPop {
   0% {
     opacity: 0;
-    transform: scale(0.92) translateY(18px);
-  }
-  65% {
-    transform: scale(1.008) translateY(-2px);
+    transform: scale(0.94) translateY(12px);
   }
   100% {
     opacity: 1;
@@ -292,18 +184,14 @@ input[type="button"]:active:not(:disabled) {
 }
 
 @keyframes smoothFadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 @keyframes smoothSlideUp {
   0% {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(14px);
   }
   100% {
     opacity: 1;
@@ -312,20 +200,18 @@ input[type="button"]:active:not(:disabled) {
 }
 
 .animate-fadeIn {
-  animation: smoothFadeIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: smoothFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-modalPop {
-  animation: smoothModalPop 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: smoothModalPop 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slideUp {
-  animation: smoothSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: smoothSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ==========================================================================
-   INTERACTIVE CURSOR RIPPLE & SPARKLE ANIMATIONS
-   ========================================================================== */
+/* Cursor Ripple & Sparkle */
 @keyframes clickRipple {
   0% {
     transform: translate(-50%, -50%) scale(0.4);
@@ -351,11 +237,9 @@ input[type="button"]:active:not(:disabled) {
 }
 
 .animate-clickRipple {
-  animation: clickRipple 0.52s cubic-bezier(0.12, 0.8, 0.32, 1) forwards;
+  animation: clickRipple 0.5s cubic-bezier(0.12, 0.8, 0.32, 1) forwards;
 }
 
 .animate-sparkleBurst {
-  animation: sparkleBurst 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: sparkleBurst 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
-
